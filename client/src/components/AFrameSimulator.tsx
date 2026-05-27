@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Card } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { ArrowRight, Ruler, Home } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface SimulatorData {
   base: number;
@@ -64,6 +65,7 @@ export default function AFrameSimulator() {
   const [prices, setPrices] = useState<MaterialPrices>(DEFAULT_PRICES);
   const [savedSimulations, setSavedSimulations] = useState<SavedSimulation[]>([]);
   const [showSaved, setShowSaved] = useState(false);
+  const [resetTrigger, setResetTrigger] = useState(0);
 
   const handleResetSimulation = () => {
     setBase(4.0);
@@ -71,7 +73,14 @@ export default function AFrameSimulator() {
     setLength(5.0);
     setPrices(DEFAULT_PRICES);
     setShowSaved(false);
-    // Força re-renderização
+    // Força re-renderização completa dos sliders
+    setResetTrigger(prev => prev + 1);
+    // Notificação de sucesso
+    toast.success('Simulação resetada! Pronto para uma nova análise.', {
+      duration: 3000,
+      position: 'top-center',
+    });
+    // Scroll suave para o topo
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -268,7 +277,7 @@ export default function AFrameSimulator() {
                   <span className="text-lg font-bold text-[#15803d]">{base.toFixed(2)} m</span>
                 </div>
                 <Slider
-                  key={`base-${base}`}
+                  key={`base-${resetTrigger}`}
                   value={[base]}
                   onValueChange={(value) => setBase(value[0])}
                   min={MIN_BASE}
@@ -286,7 +295,7 @@ export default function AFrameSimulator() {
                   <span className="text-lg font-bold text-[#15803d]">{height.toFixed(2)} m</span>
                 </div>
                 <Slider
-                  key={`height-${height}`}
+                  key={`height-${resetTrigger}`}
                   value={[height]}
                   onValueChange={(value) => setHeight(value[0])}
                   min={MIN_HEIGHT}
@@ -304,7 +313,7 @@ export default function AFrameSimulator() {
                   <span className="text-lg font-bold text-[#15803d]">{length.toFixed(2)} m</span>
                 </div>
                 <Slider
-                  key={`length-${length}`}
+                  key={`length-${resetTrigger}`}
                   value={[length]}
                   onValueChange={(value) => setLength(value[0])}
                   min={MIN_LENGTH}
@@ -381,7 +390,7 @@ export default function AFrameSimulator() {
                   />
                   <Tooltip 
                     contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e8e6e1' }}
-                    formatter={(value) => `${value.toFixed(1)}%`}
+                    formatter={(value: any) => `${(value as number).toFixed(1)}%`}
                   />
                   <Line 
                     type="monotone" 
