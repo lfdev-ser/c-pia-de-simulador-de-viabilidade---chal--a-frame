@@ -66,6 +66,7 @@ export default function AFrameSimulator() {
   const [savedSimulations, setSavedSimulations] = useState<SavedSimulation[]>([]);
   const [showSaved, setShowSaved] = useState(false);
   const [resetTrigger, setResetTrigger] = useState(0);
+  const [showResults, setShowResults] = useState(true);
 
   const handleResetSimulation = () => {
     setBase(4.0);
@@ -73,10 +74,12 @@ export default function AFrameSimulator() {
     setLength(5.0);
     setPrices(DEFAULT_PRICES);
     setShowSaved(false);
+    // Limpa os resultados - usuário precisa ajustar os sliders
+    setShowResults(false);
     // Força re-renderização completa dos sliders
     setResetTrigger(prev => prev + 1);
     // Notificação de sucesso
-    toast.success('Simulação resetada! Pronto para uma nova análise.', {
+    toast.success('Simulação resetada! Ajuste os sliders para ver os novos resultados.', {
       duration: 3000,
       position: 'top-center',
     });
@@ -84,7 +87,21 @@ export default function AFrameSimulator() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleSliderChange = (value: number) => {
+    // Mostra resultados quando o usuário começa a ajustar
+    if (!showResults) {
+      setShowResults(true);
+    }
+  };
+
   const handleSaveSimulation = () => {
+    if (!showResults) {
+      toast.error('Ajuste os sliders antes de salvar a simulação.', {
+        duration: 2000,
+        position: 'top-center',
+      });
+      return;
+    }
     const newSimulation: SavedSimulation = {
       id: Date.now().toString(),
       name: `Simulação ${new Date().toLocaleDateString('pt-BR')} - ${base.toFixed(2)}x${height.toFixed(2)}x${length.toFixed(2)}m`,
@@ -94,6 +111,10 @@ export default function AFrameSimulator() {
       timestamp: Date.now(),
     };
     setSavedSimulations([...savedSimulations, newSimulation]);
+    toast.success('Simulação salva com sucesso!', {
+      duration: 2000,
+      position: 'top-center',
+    });
   };
 
   const handleLoadSimulation = (sim: SavedSimulation) => {
@@ -101,6 +122,7 @@ export default function AFrameSimulator() {
     setHeight(sim.height);
     setLength(sim.length);
     setShowSaved(false);
+    setShowResults(true);
   };
 
   const handleDeleteSimulation = (id: string) => {
@@ -279,7 +301,10 @@ export default function AFrameSimulator() {
                 <Slider
                   key={`base-${resetTrigger}`}
                   value={[base]}
-                  onValueChange={(value) => setBase(value[0])}
+                  onValueChange={(value) => {
+                    setBase(value[0]);
+                    handleSliderChange(value[0]);
+                  }}
                   min={MIN_BASE}
                   max={MAX_BASE}
                   step={0.1}
@@ -297,7 +322,10 @@ export default function AFrameSimulator() {
                 <Slider
                   key={`height-${resetTrigger}`}
                   value={[height]}
-                  onValueChange={(value) => setHeight(value[0])}
+                  onValueChange={(value) => {
+                    setHeight(value[0]);
+                    handleSliderChange(value[0]);
+                  }}
                   min={MIN_HEIGHT}
                   max={MAX_HEIGHT}
                   step={0.1}
@@ -315,7 +343,10 @@ export default function AFrameSimulator() {
                 <Slider
                   key={`length-${resetTrigger}`}
                   value={[length]}
-                  onValueChange={(value) => setLength(value[0])}
+                  onValueChange={(value) => {
+                    setLength(value[0]);
+                    handleSliderChange(value[0]);
+                  }}
                   min={MIN_LENGTH}
                   max={MAX_LENGTH}
                   step={0.1}
@@ -328,6 +359,12 @@ export default function AFrameSimulator() {
               <div className="border-t border-[#e8e6e1] my-6"></div>
 
               {/* Resultados */}
+              {!showResults ? (
+                <div className="p-6 bg-[#fef3c7] border-2 border-[#fcd34d] rounded-lg text-center">
+                  <p className="text-[#92400e] font-semibold">👆 Ajuste os sliders acima para ver os resultados</p>
+                </div>
+              ) : (
+              <>
               <h3 className="text-lg font-bold text-[#2d2d2d] mb-4">Resultados</h3>
               
               <div className="space-y-4">
@@ -368,10 +405,13 @@ export default function AFrameSimulator() {
                   <strong>💡 Dica:</strong> Para máximo conforto, mantenha o aproveitamento acima de 55%.
                 </p>
               </div>
+              </>
+              )}
             </Card>
           </div>
 
           {/* Visualizações */}
+          {showResults && (
           <div className="lg:col-span-2 space-y-8">
             {/* Gráfico de Aproveitamento */}
             <Card className="p-8 bg-white border-[#e8e6e1] shadow-lg rounded-2xl">
@@ -541,9 +581,11 @@ export default function AFrameSimulator() {
               </div>
             </Card>
           </div>
+          )}
         </div>
 
         {/* Informações Normativas */}
+        {showResults && (
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="p-6 bg-white border-[#e8e6e1] shadow-lg rounded-2xl">
             <div className="flex items-start gap-4">
@@ -575,6 +617,7 @@ export default function AFrameSimulator() {
             </div>
           </Card>
         </div>
+        )}
       </div>
     </div>
   );
