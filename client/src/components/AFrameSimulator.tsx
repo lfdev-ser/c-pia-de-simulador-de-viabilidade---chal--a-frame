@@ -25,7 +25,7 @@ interface SimulatorData {
 interface MaterialPrices {
   concretePerM3: number;
   steelPerKg: number;
-  epsPerM2: number;
+  epsPerM3: number;
   accessories: number;
 }
 
@@ -54,7 +54,7 @@ const ICF_EPS_DENSITY = 22;
 const DEFAULT_PRICES: MaterialPrices = {
   concretePerM3: 500,
   steelPerKg: 6.0,
-  epsPerM2: 100,
+  epsPerM3: 100,
   accessories: 20,
 };
 
@@ -187,7 +187,7 @@ export default function AFrameSimulator() {
   const costs = useMemo(() => {
     const concreteCost = data.concreteVolume * prices.concretePerM3;
     const steelCost = data.steelWeight * prices.steelPerKg;
-    const epsCost = data.wallArea * prices.epsPerM2;
+    const epsCost = data.epsVolume * prices.epsPerM3;
     const accessoriesCost = data.wallArea * prices.accessories;
     const totalCost = concreteCost + steelCost + epsCost + accessoriesCost;
     
@@ -197,9 +197,9 @@ export default function AFrameSimulator() {
       epsCost,
       accessoriesCost,
       totalCost,
-      costPerM2: totalCost / data.wallArea,
+      costPerM2: Math.round((totalCost / data.wallArea) * 100) / 100,
     };
-  }, [data.concreteVolume, data.steelWeight, data.wallArea, prices]);
+  }, [data, prices]);
 
   // Gerar dados para o gráfico de aproveitamento
   const chartData = useMemo(() => {
@@ -576,7 +576,7 @@ export default function AFrameSimulator() {
                 </div>
                 <div className="flex justify-between items-center p-3 bg-[#fef3c7] rounded-lg">
                   <p className="text-sm text-[#92400e] font-semibold">Custo por m² de parede</p>
-                  <p className="font-bold text-[#92400e]">R$ {costs.costPerM2.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                  <p className="font-bold text-[#92400e]">R$ {costs.costPerM2.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
               </div>
             </Card>
