@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { ArrowRight, Ruler, Home } from 'lucide-react';
 import { toast } from 'sonner';
+import PriceConfigModal from './PriceConfigModal';
 
 interface SimulatorData {
   base: number;
@@ -25,7 +26,7 @@ interface SimulatorData {
 interface MaterialPrices {
   concretePerM3: number;
   steelPerKg: number;
-  epsPerM3: number;
+  epsPerForm: number; // Preço por forma de EPS (2 formas = 1 m² de parede)
   accessories: number;
 }
 
@@ -54,7 +55,7 @@ const ICF_EPS_DENSITY = 22;
 const DEFAULT_PRICES: MaterialPrices = {
   concretePerM3: 500,
   steelPerKg: 6.0,
-  epsPerM3: 100,
+  epsPerForm: 75.70, // R$ 75,70 por forma (2 formas = 1 m² = R$ 151,40)
   accessories: 20,
 };
 
@@ -62,11 +63,25 @@ export default function AFrameSimulator() {
   const [base, setBase] = useState(4.0);
   const [height, setHeight] = useState(5.0);
   const [length, setLength] = useState(5.0);
-  const [prices, setPrices] = useState<MaterialPrices>(DEFAULT_PRICES);
+  
+  // Carregar preços do localStorage ou usar padrão
+  const [prices, setPrices] = useState<MaterialPrices>(() => {
+    try {
+      const saved = localStorage.getItem('chalePrices');
+      return saved ? JSON.parse(saved) : DEFAULT_PRICES;
+    } catch {
+      return DEFAULT_PRICES;
+    }
+  });
   const [savedSimulations, setSavedSimulations] = useState<SavedSimulation[]>([]);
   const [showSaved, setShowSaved] = useState(false);
   const [resetTrigger, setResetTrigger] = useState(0);
   const [showResults, setShowResults] = useState(true);
+  
+  // Salvar preços no localStorage quando mudarem
+  useEffect(() => {
+    localStorage.setItem('chalePrices', JSON.stringify(prices));
+  }, [prices]);
 
   const handleResetSimulation = () => {
     setBase(4.0);
@@ -187,7 +202,9 @@ export default function AFrameSimulator() {
   const costs = useMemo(() => {
     const concreteCost = data.concreteVolume * prices.concretePerM3;
     const steelCost = data.steelWeight * prices.steelPerKg;
-    const epsCost = data.epsVolume * prices.epsPerM3;
+    // EPS: 2 formas por m² de parede
+    const epsFormsNeeded = data.wallArea * 2;
+    const epsCost = epsFormsNeeded * prices.epsPerForm;
     const accessoriesCost = data.wallArea * prices.accessories;
     const totalCost = concreteCost + steelCost + epsCost + accessoriesCost;
     
@@ -243,6 +260,10 @@ export default function AFrameSimulator() {
             >
               💾 Salvar Simulação
             </button>
+            <PriceConfigModal
+              prices={prices}
+              onPricesChange={setPrices}
+            />
             {savedSimulations.length > 0 && (
               <button
                 type="button"
