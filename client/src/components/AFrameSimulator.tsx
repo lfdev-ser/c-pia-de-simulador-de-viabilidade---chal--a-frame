@@ -5,6 +5,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { ArrowRight, Ruler, Home } from 'lucide-react';
 import { toast } from 'sonner';
 import PriceConfigModal from './PriceConfigModal';
+import SizePresets from './SizePresets';
 
 interface SimulatorData {
   base: number;
@@ -326,6 +327,20 @@ export default function AFrameSimulator() {
           <div className="lg:col-span-1">
             <Card className="p-8 bg-white border-[#e8e6e1] shadow-lg rounded-2xl">
               <h2 className="text-2xl font-bold text-[#2d2d2d] mb-6">Dimensões</h2>
+              
+              {/* Size Presets */}
+              <div className="mb-8 pb-6 border-b border-[#e8e6e1]">
+                <SizePresets onPresetSelect={(preset) => {
+                  setBase(preset.base);
+                  setHeight(preset.height);
+                  setLength(preset.length);
+                  handleSliderChange(preset.base);
+                  toast.success(`Preset "${preset.name}" aplicado!`, {
+                    duration: 2000,
+                    position: 'top-center',
+                  });
+                }} />
+              </div>
               
               {/* Base Slider */}
               <div className="mb-8">
