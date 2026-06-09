@@ -41,11 +41,11 @@ interface SavedSimulation {
   timestamp: number;
 }
 
-const MIN_BASE = 3.5;
-const MAX_BASE = 6.0;
-const MIN_HEIGHT = 3.0;
-const MAX_HEIGHT = 7.0;
-const MIN_LENGTH = 4.0;
+const MIN_BASE = 0.0;
+const MAX_BASE = 10.0;
+const MIN_HEIGHT = 0.0;
+const MAX_HEIGHT = 10.0;
+const MIN_LENGTH = 0.0;
 const MAX_LENGTH = 10.0;
 const MIN_COMFORT = 2.1;
 
@@ -63,9 +63,9 @@ const DEFAULT_PRICES: MaterialPrices = {
 };
 
 export default function AFrameSimulator() {
-  const [base, setBase] = useState(4.0);
-  const [height, setHeight] = useState(5.0);
-  const [length, setLength] = useState(5.0);
+  const [base, setBase] = useState(0.0);
+  const [height, setHeight] = useState(0.0);
+  const [length, setLength] = useState(0.0);
   
   // Carregar preços do localStorage ou usar padrão
   const [prices, setPrices] = useState<MaterialPrices>(() => {
@@ -97,9 +97,9 @@ export default function AFrameSimulator() {
   }, [prices]);
 
   const handleResetSimulation = () => {
-    setBase(4.0);
-    setHeight(5.0);
-    setLength(5.0);
+    setBase(0.0);
+    setHeight(0.0);
+    setLength(0.0);
     setPrices(DEFAULT_PRICES);
     setShowSaved(false);
     // Limpa os resultados - usuário precisa ajustar os sliders
@@ -358,7 +358,7 @@ export default function AFrameSimulator() {
                   }}
                   min={MIN_BASE}
                   max={MAX_BASE}
-                  step={0.1}
+                  step={0.01}
                   className="w-full"
                 />
                 <p className="text-xs text-[#6b6b6b] mt-2">Recomendado: 4,00 m</p>
@@ -379,7 +379,7 @@ export default function AFrameSimulator() {
                   }}
                   min={MIN_HEIGHT}
                   max={MAX_HEIGHT}
-                  step={0.1}
+                  step={0.01}
                   className="w-full"
                 />
                 <p className="text-xs text-[#6b6b6b] mt-2">Recomendado: 5,00 m</p>
@@ -400,7 +400,7 @@ export default function AFrameSimulator() {
                   }}
                   min={MIN_LENGTH}
                   max={MAX_LENGTH}
-                  step={0.1}
+                  step={0.01}
                   className="w-full"
                 />
                 <p className="text-xs text-[#6b6b6b] mt-2">Recomendado: 5,00 m - 6,00 m</p>
