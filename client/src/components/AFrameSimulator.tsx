@@ -334,6 +334,7 @@ export default function AFrameSimulator() {
                   setBase(preset.base);
                   setHeight(preset.height);
                   setLength(preset.length);
+                  setResetTrigger(prev => prev + 1);
                   handleSliderChange(preset.base);
                   toast.success(`Preset "${preset.name}" aplicado!`, {
                     duration: 2000,
@@ -662,7 +663,12 @@ export default function AFrameSimulator() {
               <Home className="w-6 h-6 text-[#15803d] mt-1 flex-shrink-0" />
               <div>
                 <h4 className="font-bold text-[#2d2d2d] mb-2">Recomendação</h4>
-                <p className="text-sm text-[#6b6b6b]">Base 4,00m com altura 5,00m oferece excelente equilíbrio entre conforto e design.</p>
+                <p className="text-sm text-[#6b6b6b]">
+                  Base {base.toFixed(2)}m com altura {height.toFixed(2)}m oferece excelente equilíbrio entre conforto e design.
+                  {data.usefulWidth < 2.1 && " Considere aumentar a altura para melhor aproveitamento."}
+                  {data.angle < 66 && " O ângulo está abaixo do ideal (66-68°)."}
+                  {data.angle > 68 && " O ângulo está acima do ideal (66-68°)."}
+                </p>
               </div>
             </div>
           </Card>
