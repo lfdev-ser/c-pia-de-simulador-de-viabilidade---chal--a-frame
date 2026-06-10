@@ -6,6 +6,7 @@ import { ArrowRight, Ruler, Home } from 'lucide-react';
 import { toast } from 'sonner';
 import PriceConfigModal from './PriceConfigModal';
 import SizePresets from './SizePresets';
+import ComparadorSimulacoes from './ComparadorSimulacoes';
 
 interface SimulatorData {
   base: number;
@@ -90,6 +91,7 @@ export default function AFrameSimulator() {
   const [showSaved, setShowSaved] = useState(false);
   const [resetTrigger, setResetTrigger] = useState(0);
   const [showResults, setShowResults] = useState(true);
+  const [showComparador, setShowComparador] = useState(false);
   
   // Salvar preços no localStorage quando mudarem
   useEffect(() => {
@@ -280,13 +282,24 @@ export default function AFrameSimulator() {
               onPricesChange={setPrices}
             />
             {savedSimulations.length > 0 && (
-              <button
-                type="button"
-                onClick={() => setShowSaved(!showSaved)}
-                className="px-6 py-2 bg-[#6366f1] text-white rounded-lg font-semibold hover:bg-[#4f46e5] transition-colors"
-              >
-                📊 Simulações Salvas ({savedSimulations.length})
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShowSaved(!showSaved)}
+                  className="px-6 py-2 bg-[#6366f1] text-white rounded-lg font-semibold hover:bg-[#4f46e5] transition-colors"
+                >
+                  📊 Simulações Salvas ({savedSimulations.length})
+                </button>
+                {savedSimulations.length >= 2 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowComparador(true)}
+                    className="px-6 py-2 bg-[#8b5cf6] text-white rounded-lg font-semibold hover:bg-[#7c3aed] transition-colors"
+                  >
+                    ⚖️ Comparar Simulações
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -674,6 +687,64 @@ export default function AFrameSimulator() {
           </Card>
         </div>
         )}
+
+        {/* Comparador Modal */}
+        <ComparadorSimulacoes
+          open={showComparador}
+          onOpenChange={setShowComparador}
+          savedSimulations={savedSimulations}
+          calculateSimulationData={(base, height, length) => {
+            const b = base / 2;
+            const h = height;
+            const angleRad = Math.atan(h / b);
+            const angleDeg = (angleRad * 180) / Math.PI;
+            const faceLength = Math.sqrt(b * b + h * h);
+            const usefulWidthHalf = (b * (h - MIN_COMFORT)) / h;
+            const usefulWidth = usefulWidthHalf * 2;
+            const utilization = (usefulWidth / base) * 100;
+            const totalArea = base * length;
+            const triangleArea = (base * h) / 2;
+            const volume = triangleArea * length;
+            const lateralWallArea = 2 * (faceLength * length);
+            const frontalWallArea = 2 * triangleArea;
+            const wallArea = lateralWallArea + frontalWallArea;
+            const concreteVolume = wallArea * ICF_CONCRETE_PER_M2;
+            const steelWeight = wallArea * ICF_STEEL_PER_M2;
+            const epsVolume = wallArea * ICF_EPS_PER_M2;
+            const epsWeight = epsVolume * ICF_EPS_DENSITY;
+            return {
+              base,
+              height,
+              length,
+              angle: angleDeg,
+              usefulWidth,
+              utilization,
+              faceLength,
+              totalArea,
+              volume,
+              wallArea,
+              concreteVolume,
+              steelWeight,
+              epsVolume,
+              epsWeight,
+            };
+          }}
+          calculateCosts={(data) => {
+            const concreteCost = data.concreteVolume * prices.concretePerM3;
+            const steelCost = data.steelWeight * prices.steelPerKg;
+            const epsCost = data.wallArea * 2 * prices.epsPerForm;
+            const accessoriesCost = data.wallArea * prices.accessories;
+            const totalCost = concreteCost + steelCost + epsCost + accessoriesCost + prices.fixedCost;
+            const costPerM2 = Math.round((totalCost / data.wallArea) * 100) / 100;
+            return {
+              concreteCost,
+              steelCost,
+              epsCost,
+              totalCost,
+              costPerM2,
+            };
+          }}
+        />
       </div>
     </div>
   );
