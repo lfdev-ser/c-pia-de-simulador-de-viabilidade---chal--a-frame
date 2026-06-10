@@ -30,7 +30,6 @@ interface MaterialPrices {
   steelPerKg: number;
   epsPerForm: number; // Preço por forma de EPS (2 formas = 1 m² de parede)
   accessories: number;
-  fixedCost: number; // Custo fixo (mão de obra, mobilização, etc.)
 }
 
 interface SavedSimulation {
@@ -60,7 +59,6 @@ const DEFAULT_PRICES: MaterialPrices = {
   steelPerKg: 6.0,
   epsPerForm: 75.70, // R$ 75,70 por forma (2 formas = 1 m² = R$ 151,40)
   accessories: 20,
-  fixedCost: 5000, // R$ 5.000 de custo fixo (mão de obra, mobilização, etc.)
 };
 
 export default function AFrameSimulator() {
@@ -79,7 +77,6 @@ export default function AFrameSimulator() {
           steelPerKg: parsed.steelPerKg ?? DEFAULT_PRICES.steelPerKg,
           epsPerForm: parsed.epsPerForm ?? DEFAULT_PRICES.epsPerForm,
           accessories: parsed.accessories ?? DEFAULT_PRICES.accessories,
-          fixedCost: parsed.fixedCost ?? DEFAULT_PRICES.fixedCost,
         };
       }
       return DEFAULT_PRICES;
@@ -221,15 +218,13 @@ export default function AFrameSimulator() {
     const epsFormsNeeded = data.wallArea * 2;
     const epsCost = epsFormsNeeded * prices.epsPerForm;
     const accessoriesCost = data.wallArea * prices.accessories;
-    const materialsCost = concreteCost + steelCost + epsCost + accessoriesCost;
-    const totalCost = materialsCost + prices.fixedCost;
+    const totalCost = concreteCost + steelCost + epsCost + accessoriesCost;
     
     return {
       concreteCost,
       steelCost,
       epsCost,
       accessoriesCost,
-      materialsCost,
       totalCost,
       costPerM2: Math.round((totalCost / data.wallArea) * 100) / 100,
     };
@@ -734,7 +729,7 @@ export default function AFrameSimulator() {
             const steelCost = data.steelWeight * prices.steelPerKg;
             const epsCost = data.wallArea * 2 * prices.epsPerForm;
             const accessoriesCost = data.wallArea * prices.accessories;
-            const totalCost = concreteCost + steelCost + epsCost + accessoriesCost + prices.fixedCost;
+            const totalCost = concreteCost + steelCost + epsCost + accessoriesCost;
             const costPerM2 = Math.round((totalCost / data.wallArea) * 100) / 100;
             return {
               concreteCost,

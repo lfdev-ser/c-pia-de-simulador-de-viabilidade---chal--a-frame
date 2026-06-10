@@ -11,7 +11,6 @@ interface MaterialPrices {
   steelPerKg: number;
   epsPerForm: number;
   accessories: number;
-  fixedCost: number;
 }
 
 interface PriceConfigModalProps {
@@ -145,25 +144,6 @@ export default function PriceConfigModal({ prices, onPricesChange }: PriceConfig
                 <span className="text-sm text-gray-600 whitespace-nowrap">R$/m²</span>
               </div>
               <p className="text-xs text-gray-500">Preço por metro quadrado de parede</p>
-            </div>
-
-            {/* Custo Fixo */}
-            <div className="space-y-2">
-              <Label htmlFor="fixedCost" className="text-sm font-semibold">
-                Custo Fixo
-              </Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  id="fixedCost"
-                  type="number"
-                  step="0.01"
-                  value={localPrices.fixedCost}
-                  onChange={(e) => handleInputChange('fixedCost', e.target.value)}
-                  className="flex-1"
-                />
-                <span className="text-sm text-gray-600 whitespace-nowrap">R$</span>
-              </div>
-              <p className="text-xs text-gray-500">Mão de obra, mobilização, etc. (não varia com tamanho)</p>
             </div>
           </div>
 
