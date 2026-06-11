@@ -368,6 +368,8 @@ export default function AFrameSimulator() {
       accessoriesCost,
       iceflexCost,
       icfibraCost,
+      iceflexBaldesNeeded,
+      icfibraRolosNeeded,
       totalCost,
       costPerM2: Math.round((totalCost / data.wallArea) * 100) / 100,
     };
@@ -762,6 +764,18 @@ export default function AFrameSimulator() {
                   <p className="text-xs text-[#6b6b6b] mb-1">EPS (Isolamento)</p>
                   <p className="text-2xl font-bold text-[#15803d]">{data.epsVolume.toFixed(2)} m³</p>
                   <p className="text-xs text-[#6b6b6b] mt-1">({data.epsWeight.toFixed(0)} kg)</p>
+                </div>
+
+                <div className="bg-[#f5f3f0] p-4 rounded-lg">
+                  <p className="text-xs text-[#6b6b6b] mb-1">Iceflex (Revestimento)</p>
+                  <p className="text-2xl font-bold text-[#15803d]">{costs.iceflexBaldesNeeded} baldes</p>
+                  <p className="text-xs text-[#6b6b6b] mt-1">(18 KG cada - ~7 m² por balde)</p>
+                </div>
+
+                <div className="bg-[#f5f3f0] p-4 rounded-lg">
+                  <p className="text-xs text-[#6b6b6b] mb-1">ICFibra (Reforço)</p>
+                  <p className="text-2xl font-bold text-[#15803d]">{costs.icfibraRolosNeeded} rolos</p>
+                  <p className="text-xs text-[#6b6b6b] mt-1">(50 m² cada - 1m × 50m)</p>
                 </div>
               </div>
 
