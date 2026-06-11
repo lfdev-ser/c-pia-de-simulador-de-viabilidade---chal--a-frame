@@ -29,8 +29,10 @@ interface SimulatorData {
 interface MaterialPrices {
   concretePerM3: number;
   steelPerKg: number;
-  epsPerForm: number; // Preço por forma de EPS (2 formas = 1 m² de parede)
+  epsPerForm: number; // Preco por forma de EPS (2 formas = 1 m² de parede)
   accessories: number;
+  iceflex: number; // Preco por balde de Iceflex (18 KG) - rendimento ~7 m² por balde
+  icfibra: number; // Preco por rolo de ICFibra (50 m²) - reforco para Iceflex
 }
 
 interface SavedSimulation {
@@ -93,6 +95,8 @@ const DEFAULT_PRICES: MaterialPrices = {
   steelPerKg: 6.0,
   epsPerForm: 75.70, // R$ 75,70 por forma (2 formas = 1 m² = R$ 151,40)
   accessories: 20,
+  iceflex: 0, // Preco por balde de Iceflex (18 KG) - rendimento ~7 m² por balde
+  icfibra: 0, // Preco por rolo de ICFibra (50 m²) - reforco para Iceflex
 };
 
 // Função de Validação de Dimensões
@@ -203,6 +207,8 @@ export default function AFrameSimulator() {
           steelPerKg: parsed.steelPerKg ?? DEFAULT_PRICES.steelPerKg,
           epsPerForm: parsed.epsPerForm ?? DEFAULT_PRICES.epsPerForm,
           accessories: parsed.accessories ?? DEFAULT_PRICES.accessories,
+          iceflex: parsed.iceflex ?? DEFAULT_PRICES.iceflex,
+          icfibra: parsed.icfibra ?? DEFAULT_PRICES.icfibra,
         };
       }
       return DEFAULT_PRICES;
@@ -344,13 +350,24 @@ export default function AFrameSimulator() {
     const epsFormsNeeded = data.wallArea * 2;
     const epsCost = epsFormsNeeded * prices.epsPerForm;
     const accessoriesCost = data.wallArea * prices.accessories;
-    const totalCost = concreteCost + steelCost + epsCost + accessoriesCost;
+    
+    // Iceflex: rendimento ~7 m² por balde (18 KG)
+    const iceflexBaldesNeeded = Math.ceil(data.wallArea / 7);
+    const iceflexCost = iceflexBaldesNeeded * prices.iceflex;
+    
+    // ICFibra: 1 rolo cobre 50 m²
+    const icfibraRolosNeeded = Math.ceil(data.wallArea / 50);
+    const icfibraCost = icfibraRolosNeeded * prices.icfibra;
+    
+    const totalCost = concreteCost + steelCost + epsCost + accessoriesCost + iceflexCost + icfibraCost;
     
     return {
       concreteCost,
       steelCost,
       epsCost,
       accessoriesCost,
+      iceflexCost,
+      icfibraCost,
       totalCost,
       costPerM2: Math.round((totalCost / data.wallArea) * 100) / 100,
     };
@@ -766,6 +783,14 @@ export default function AFrameSimulator() {
                 <div className="flex justify-between items-center p-3 bg-[#f5f3f0] rounded-lg">
                   <p className="text-sm text-[#6b6b6b]">EPS + Acessórios</p>
                   <p className="font-bold text-[#15803d]">R$ {(costs.epsCost + costs.accessoriesCost).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-[#f5f3f0] rounded-lg">
+                  <p className="text-sm text-[#6b6b6b]">Iceflex (Revestimento)</p>
+                  <p className="font-bold text-[#15803d]">R$ {costs.iceflexCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-[#f5f3f0] rounded-lg">
+                  <p className="text-sm text-[#6b6b6b]">ICFibra (Reforço)</p>
+                  <p className="font-bold text-[#15803d]">R$ {costs.icfibraCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </div>
                 <div className="flex justify-between items-center p-4 bg-gradient-to-r from-[#15803d] to-[#2d5016] rounded-lg">
                   <p className="font-bold text-white">Total de Materiais</p>

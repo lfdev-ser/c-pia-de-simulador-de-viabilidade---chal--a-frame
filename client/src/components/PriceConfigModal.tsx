@@ -11,6 +11,8 @@ interface MaterialPrices {
   steelPerKg: number;
   epsPerForm: number;
   accessories: number;
+  iceflex: number;
+  icfibra: number;
 }
 
 interface PriceConfigModalProps {
@@ -144,6 +146,50 @@ export default function PriceConfigModal({ prices, onPricesChange }: PriceConfig
                 <span className="text-sm text-gray-600 whitespace-nowrap">R$/m²</span>
               </div>
               <p className="text-xs text-gray-500">Preço por metro quadrado de parede</p>
+            </div>
+
+            {/* Iceflex */}
+            <div className="space-y-2">
+              <Label htmlFor="iceflex" className="text-sm font-semibold">
+                Iceflex (Revestimento)
+              </Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="iceflex"
+                  type="number"
+                  step="0.01"
+                  value={localPrices.iceflex}
+                  onChange={(e) => handleInputChange('iceflex', e.target.value)}
+                  className="flex-1"
+                />
+                <span className="text-sm text-gray-600 whitespace-nowrap">R$/balde</span>
+              </div>
+              <p className="text-xs text-gray-500">Preço por balde (18 KG)</p>
+              <p className="text-xs text-blue-600 font-semibold">
+                Rendimento: ~7 m² por balde
+              </p>
+            </div>
+
+            {/* ICFibra */}
+            <div className="space-y-2">
+              <Label htmlFor="icfibra" className="text-sm font-semibold">
+                ICFibra (Reforço)
+              </Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="icfibra"
+                  type="number"
+                  step="0.01"
+                  value={localPrices.icfibra}
+                  onChange={(e) => handleInputChange('icfibra', e.target.value)}
+                  className="flex-1"
+                />
+                <span className="text-sm text-gray-600 whitespace-nowrap">R$/rolo</span>
+              </div>
+              <p className="text-xs text-gray-500">Preço por rolo (50 m²)</p>
+              <p className="text-xs text-blue-600 font-semibold">
+                Dimensões: 1m × 50m (50 m² por rolo)
+              </p>
             </div>
           </div>
 
