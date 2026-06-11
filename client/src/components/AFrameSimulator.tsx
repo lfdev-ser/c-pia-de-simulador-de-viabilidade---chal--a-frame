@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import PriceConfigModal from './PriceConfigModal';
 import SizePresets from './SizePresets';
 import ComparadorSimulacoes from './ComparadorSimulacoes';
+import ValidationWarnings from './ValidationWarnings';
 
 interface SimulatorData {
   base: number;
@@ -41,6 +42,12 @@ interface SavedSimulation {
   timestamp: number;
 }
 
+interface ValidationWarning {
+  type: 'base' | 'height' | 'length' | 'angle' | 'utilization';
+  severity: 'critical' | 'warning' | 'info';
+  message: string;
+}
+
 const MIN_BASE = 0.0;
 const MAX_BASE = 10.0;
 const MIN_HEIGHT = 0.0;
@@ -48,6 +55,33 @@ const MAX_HEIGHT = 10.0;
 const MIN_LENGTH = 0.0;
 const MAX_LENGTH = 10.0;
 const MIN_COMFORT = 2.1;
+
+// Validação de Dimensões
+const VALIDATION_LIMITS = {
+  base: {
+    minimum: 2.0,
+    optimal: { min: 4.0, max: 6.0 },
+    warning: 8.0,
+  },
+  height: {
+    minimum: 2.1,
+    optimal: { min: 4.5, max: 6.0 },
+    warning: 8.0,
+  },
+  length: {
+    minimum: 3.0,
+    optimal: { min: 5.0, max: 8.0 },
+    warning: 9.0,
+  },
+  angle: {
+    optimal: { min: 66, max: 68 },
+    warning: { min: 66, max: 70 },
+  },
+  utilization: {
+    minimum: 0.4,
+    optimal: 0.55,
+  },
+};
 
 const ICF_CONCRETE_PER_M2 = 0.10;
 const ICF_STEEL_PER_M2 = 4.0;
@@ -60,6 +94,98 @@ const DEFAULT_PRICES: MaterialPrices = {
   epsPerForm: 75.70, // R$ 75,70 por forma (2 formas = 1 m² = R$ 151,40)
   accessories: 20,
 };
+
+// Função de Validação de Dimensões
+function getValidationWarnings(
+  base: number,
+  height: number,
+  length: number,
+  angle: number,
+  utilization: number
+): ValidationWarning[] {
+  const warnings: ValidationWarning[] = [];
+
+  // Validação de Base
+  if (base > 0 && base < VALIDATION_LIMITS.base.minimum) {
+    warnings.push({
+      type: 'base',
+      severity: 'critical',
+      message: `Base muito pequena. Recomendamos mínimo ${VALIDATION_LIMITS.base.minimum}m para aproveitamento mínimo.`,
+    });
+  } else if (base > VALIDATION_LIMITS.base.warning) {
+    warnings.push({
+      type: 'base',
+      severity: 'warning',
+      message: `Base muito grande (${base.toFixed(2)}m). Pode aumentar custos significativamente.`,
+    });
+  }
+
+  // Validação de Altura
+  if (height > 0 && height < VALIDATION_LIMITS.height.minimum) {
+    warnings.push({
+      type: 'height',
+      severity: 'critical',
+      message: `Altura insuficiente. Mínimo recomendado é ${VALIDATION_LIMITS.height.minimum}m para pé-direito.`,
+    });
+  } else if (height > VALIDATION_LIMITS.height.warning) {
+    warnings.push({
+      type: 'height',
+      severity: 'warning',
+      message: `Altura muito grande (${height.toFixed(2)}m). Pode comprometer a estrutura e estética.`,
+    });
+  }
+
+  // Validação de Comprimento
+  if (length > 0 && length < VALIDATION_LIMITS.length.minimum) {
+    warnings.push({
+      type: 'length',
+      severity: 'critical',
+      message: `Comprimento muito pequeno. Recomendamos mínimo ${VALIDATION_LIMITS.length.minimum}m.`,
+    });
+  } else if (length > VALIDATION_LIMITS.length.warning) {
+    warnings.push({
+      type: 'length',
+      severity: 'warning',
+      message: `Comprimento muito grande (${length.toFixed(2)}m). Pode aumentar custos estruturais.`,
+    });
+  }
+
+  // Validação de Ângulo
+  if (angle > 0) {
+    if (angle < VALIDATION_LIMITS.angle.optimal.min) {
+      warnings.push({
+        type: 'angle',
+        severity: 'warning',
+        message: `Ângulo ${angle.toFixed(1)}° abaixo do ideal (66-68°). Pode prejudicar escoamento de água.`,
+      });
+    } else if (angle > VALIDATION_LIMITS.angle.warning.max) {
+      warnings.push({
+        type: 'angle',
+        severity: 'warning',
+        message: `Ângulo ${angle.toFixed(1)}° muito inclinado. Pode comprometer a estética.`,
+      });
+    }
+  }
+
+  // Validação de Aproveitamento
+  if (utilization > 0) {
+    if (utilization < VALIDATION_LIMITS.utilization.minimum * 100) {
+      warnings.push({
+        type: 'utilization',
+        severity: 'critical',
+        message: `Aproveitamento ${utilization.toFixed(1)}% muito baixo. Considere aumentar a altura.`,
+      });
+    } else if (utilization < VALIDATION_LIMITS.utilization.optimal * 100) {
+      warnings.push({
+        type: 'utilization',
+        severity: 'warning',
+        message: `Aproveitamento ${utilization.toFixed(1)}% abaixo do recomendado (55%).`,
+      });
+    }
+  }
+
+  return warnings;
+}
 
 export default function AFrameSimulator() {
   const [base, setBase] = useState(0.0);
@@ -245,6 +371,11 @@ export default function AFrameSimulator() {
     });
   }, [base]);
 
+  // Obter avisos de validacao
+  const validationWarnings = useMemo(() => {
+    return getValidationWarnings(base, height, length, data.angle, data.utilization);
+  }, [base, height, length, data.angle, data.utilization]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#faf8f3] via-[#f5f3f0] to-[#faf8f3] py-12 px-4">
       <div className="max-w-7xl mx-auto">
@@ -413,6 +544,13 @@ export default function AFrameSimulator() {
                 />
                 <p className="text-xs text-[#6b6b6b] mt-2">Recomendado: 5,00 m - 6,00 m</p>
               </div>
+
+              {/* Validação de Dimensões */}
+              {showResults && (
+                <div className="mb-6">
+                  <ValidationWarnings warnings={validationWarnings} />
+                </div>
+              )}
 
               {/* Divider */}
               <div className="border-t border-[#e8e6e1] my-6"></div>
