@@ -9,6 +9,7 @@ import SizePresets from './SizePresets';
 import ComparadorSimulacoes from './ComparadorSimulacoes';
 import ValidationWarnings from './ValidationWarnings';
 import LaborCosts, { LaborService } from './LaborCosts';
+import CostAnalysisCharts from './CostAnalysisCharts';
 
 interface SimulatorData {
   base: number;
@@ -848,6 +849,20 @@ export default function AFrameSimulator() {
             onServicesChange={setLaborServices}
           />
         </div>
+        )}
+
+        {/* Gráficos de Análise de Custos */}
+        {showResults && (
+        <CostAnalysisCharts
+          concreteCost={costs.concreteCost}
+          steelCost={costs.steelCost}
+          epsCost={costs.epsCost}
+          accessoriesCost={costs.accessoriesCost}
+          iceflexCost={costs.iceflexCost}
+          icfibraCost={costs.icfibraCost}
+          laborCost={costs.laborCost}
+          totalCost={costs.totalCost}
+        />
         )}
 
         {/* Informações Normativas */}
