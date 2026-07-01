@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -40,6 +40,9 @@ interface ComparadorProps {
     concreteCost: number;
     steelCost: number;
     epsCost: number;
+    accessoriesCost: number;
+    iceflexCost: number;
+    icfibraCost: number;
     totalCost: number;
     costPerM2: number;
   };
@@ -252,7 +255,53 @@ export default function ComparadorSimulacoes({
             {/* Orçamento */}
             <Card className="p-4 bg-gradient-to-r from-[#f0fdf4] to-[#f5f5f5]">
               <h3 className="font-semibold text-[#2d2d2d] mb-4">💰 Orçamento Estimado</h3>
-              <div className="grid grid-cols-3 gap-4">
+              
+              {/* Detalhamento de Custos */}
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <p className="text-xs text-[#6b6b6b] mb-1">Concreto</p>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-[#15803d]">R$ {costs1.concreteCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <ArrowRight className="w-3 h-3 text-[#999]" />
+                    <span className="font-bold text-[#15803d]">R$ {costs2.concreteCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs text-[#6b6b6b] mb-1">Aço</p>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-[#15803d]">R$ {costs1.steelCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <ArrowRight className="w-3 h-3 text-[#999]" />
+                    <span className="font-bold text-[#15803d]">R$ {costs2.steelCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs text-[#6b6b6b] mb-1">EPS + Acessórios</p>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-[#15803d]">R$ {(costs1.epsCost + costs1.accessoriesCost).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <ArrowRight className="w-3 h-3 text-[#999]" />
+                    <span className="font-bold text-[#15803d]">R$ {(costs2.epsCost + costs2.accessoriesCost).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs text-[#6b6b6b] mb-1">Iceflex (Revestimento)</p>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-[#15803d]">R$ {costs1.iceflexCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <ArrowRight className="w-3 h-3 text-[#999]" />
+                    <span className="font-bold text-[#15803d]">R$ {costs2.iceflexCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs text-[#6b6b6b] mb-1">ICFibra (Reforço)</p>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-[#15803d]">R$ {costs1.icfibraCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <ArrowRight className="w-3 h-3 text-[#999]" />
+                    <span className="font-bold text-[#15803d]">R$ {costs2.icfibraCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Resumo Total */}
+              <div className="border-t border-[#e8e6e1] pt-4 grid grid-cols-3 gap-4">
                 <div>
                   <p className="text-xs text-[#6b6b6b] mb-1">Total de Materiais</p>
                   <div className="flex items-center justify-between">

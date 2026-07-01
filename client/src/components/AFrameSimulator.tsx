@@ -906,12 +906,19 @@ export default function AFrameSimulator() {
             const steelCost = data.steelWeight * prices.steelPerKg;
             const epsCost = data.wallArea * 2 * prices.epsPerForm;
             const accessoriesCost = data.wallArea * prices.accessories;
-            const totalCost = concreteCost + steelCost + epsCost + accessoriesCost;
+            const iceflexBaldesNeeded = Math.ceil(data.wallArea / 7);
+            const iceflexCost = iceflexBaldesNeeded * prices.iceflex;
+            const icfibraRolosNeeded = Math.ceil(data.wallArea / 50);
+            const icfibraCost = icfibraRolosNeeded * prices.icfibra;
+            const totalCost = concreteCost + steelCost + epsCost + accessoriesCost + iceflexCost + icfibraCost;
             const costPerM2 = Math.round((totalCost / data.wallArea) * 100) / 100;
             return {
               concreteCost,
               steelCost,
               epsCost,
+              accessoriesCost,
+              iceflexCost,
+              icfibraCost,
               totalCost,
               costPerM2,
             };
