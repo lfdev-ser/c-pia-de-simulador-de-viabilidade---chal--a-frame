@@ -8,6 +8,7 @@ import PriceConfigModal from './PriceConfigModal';
 import SizePresets from './SizePresets';
 import ComparadorSimulacoes from './ComparadorSimulacoes';
 import ValidationWarnings from './ValidationWarnings';
+import LaborCosts, { LaborService } from './LaborCosts';
 
 interface SimulatorData {
   base: number;
@@ -222,10 +223,25 @@ export default function AFrameSimulator() {
   const [showResults, setShowResults] = useState(true);
   const [showComparador, setShowComparador] = useState(false);
   
+  // Carregar serviços de mão de obra do localStorage
+  const [laborServices, setLaborServices] = useState<LaborService[]>(() => {
+    try {
+      const saved = localStorage.getItem('chaleLabor');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  
   // Salvar preços no localStorage quando mudarem
   useEffect(() => {
     localStorage.setItem('chalePrices', JSON.stringify(prices));
   }, [prices]);
+  
+  // Salvar serviços de mão de obra no localStorage quando mudarem
+  useEffect(() => {
+    localStorage.setItem('chaleLabor', JSON.stringify(laborServices));
+  }, [laborServices]);
 
   const handleResetSimulation = () => {
     setBase(0.0);
@@ -359,7 +375,10 @@ export default function AFrameSimulator() {
     const icfibraRolosNeeded = Math.ceil(data.wallArea / 50);
     const icfibraCost = icfibraRolosNeeded * prices.icfibra;
     
-    const totalCost = concreteCost + steelCost + epsCost + accessoriesCost + iceflexCost + icfibraCost;
+    // Cálculo de mão de obra
+    const laborCost = laborServices.reduce((sum, service) => sum + (service.quantity * service.unitPrice), 0);
+    
+    const totalCost = concreteCost + steelCost + epsCost + accessoriesCost + iceflexCost + icfibraCost + laborCost;
     
     return {
       concreteCost,
@@ -368,12 +387,13 @@ export default function AFrameSimulator() {
       accessoriesCost,
       iceflexCost,
       icfibraCost,
+      laborCost,
       iceflexBaldesNeeded,
       icfibraRolosNeeded,
       totalCost,
       costPerM2: Math.round((totalCost / data.wallArea) * 100) / 100,
     };
-  }, [data, prices]);
+  }, [data, prices, laborServices]);
 
   // Gerar dados para o gráfico de aproveitamento
   const chartData = useMemo(() => {
@@ -819,6 +839,16 @@ export default function AFrameSimulator() {
           </div>
           )}
         </div>
+
+        {/* Seção de Mão de Obra */}
+        {showResults && (
+        <div className="mt-8">
+          <LaborCosts
+            services={laborServices}
+            onServicesChange={setLaborServices}
+          />
+        </div>
+        )}
 
         {/* Informações Normativas */}
         {showResults && (
