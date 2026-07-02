@@ -11,6 +11,8 @@ import ValidationWarnings from './ValidationWarnings';
 import LaborCosts, { LaborService } from './LaborCosts';
 import CostAnalysisCharts from './CostAnalysisCharts';
 import PDFExportButton from './PDFExportButton';
+import CustomMaterials, { CustomMaterial } from './CustomMaterials';
+import Foundation, { FoundationBase } from './Foundation';
 
 interface SimulatorData {
   base: number;
@@ -58,6 +60,7 @@ const MAX_BASE = 10.0;
 const MIN_HEIGHT = 0.0;
 const MAX_HEIGHT = 10.0;
 const MIN_LENGTH = 0.0;
+const DEFAULT_MIN_FOOT = 3.0; // Pé direito mínimo para cabanas (maior que NBR 15575)
 const MAX_LENGTH = 10.0;
 const MIN_COMFORT = 2.1;
 
@@ -235,6 +238,29 @@ export default function AFrameSimulator() {
     }
   });
   
+  // Carregar materiais customizáveis do localStorage
+  const [customMaterials, setCustomMaterials] = useState<CustomMaterial[]>(() => {
+    try {
+      const saved = localStorage.getItem('chaleCustomMaterials');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  
+  // Carregar fundação do localStorage
+  const [foundation, setFoundation] = useState<FoundationBase | null>(() => {
+    try {
+      const saved = localStorage.getItem('chaleFoundation');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  
+  // Pé direito customizável
+  const [minFootHeight, setMinFootHeight] = useState<number>(DEFAULT_MIN_FOOT);
+  
   // Salvar preços no localStorage quando mudarem
   useEffect(() => {
     localStorage.setItem('chalePrices', JSON.stringify(prices));
@@ -244,6 +270,18 @@ export default function AFrameSimulator() {
   useEffect(() => {
     localStorage.setItem('chaleLabor', JSON.stringify(laborServices));
   }, [laborServices]);
+  
+  // Salvar materiais customizáveis no localStorage quando mudarem
+  useEffect(() => {
+    localStorage.setItem('chaleCustomMaterials', JSON.stringify(customMaterials));
+  }, [customMaterials]);
+  
+  // Salvar fundação no localStorage quando mudar
+  useEffect(() => {
+    if (foundation) {
+      localStorage.setItem('chaleFoundation', JSON.stringify(foundation));
+    }
+  }, [foundation]);
 
   const handleResetSimulation = () => {
     setBase(0.0);
@@ -380,7 +418,13 @@ export default function AFrameSimulator() {
     // Cálculo de mão de obra
     const laborCost = laborServices.reduce((sum, service) => sum + (service.quantity * service.unitPrice), 0);
     
-    const totalCost = concreteCost + steelCost + epsCost + accessoriesCost + iceflexCost + icfibraCost + laborCost;
+    // Cálculo de materiais customizáveis
+    const customMaterialsCost = customMaterials.reduce((sum, material) => sum + (material.quantity * material.unitPrice), 0);
+    
+    // Cálculo de fundação
+    const foundationCost = foundation ? foundation.totalCost : 0;
+    
+    const totalCost = concreteCost + steelCost + epsCost + accessoriesCost + iceflexCost + icfibraCost + laborCost + customMaterialsCost + foundationCost;
     
     return {
       concreteCost,
@@ -390,12 +434,14 @@ export default function AFrameSimulator() {
       iceflexCost,
       icfibraCost,
       laborCost,
+      customMaterialsCost,
+      foundationCost,
       iceflexBaldesNeeded,
       icfibraRolosNeeded,
       totalCost,
       costPerM2: Math.round((totalCost / data.wallArea) * 100) / 100,
     };
-  }, [data, prices, laborServices]);
+  }, [data, prices, laborServices, customMaterials, foundation]);
 
   // Gerar dados para o gráfico de aproveitamento
   const chartData = useMemo(() => {
@@ -848,6 +894,27 @@ export default function AFrameSimulator() {
           <LaborCosts
             services={laborServices}
             onServicesChange={setLaborServices}
+          />
+        </div>
+        )}
+
+        {/* Seção de Materiais Customizáveis */}
+        {showResults && (
+        <div className="mt-8">
+          <CustomMaterials
+            materials={customMaterials}
+            onMaterialsChange={setCustomMaterials}
+          />
+        </div>
+        )}
+
+        {/* Seção de Fundação */}
+        {showResults && (
+        <div className="mt-8">
+          <Foundation
+            foundation={foundation}
+            onFoundationChange={setFoundation}
+            projectArea={data.totalArea}
           />
         </div>
         )}
