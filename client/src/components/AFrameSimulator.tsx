@@ -10,6 +10,7 @@ import ComparadorSimulacoes from './ComparadorSimulacoes';
 import ValidationWarnings from './ValidationWarnings';
 import LaborCosts, { LaborService } from './LaborCosts';
 import CostAnalysisCharts from './CostAnalysisCharts';
+import PDFExportButton from './PDFExportButton';
 
 interface SimulatorData {
   base: number;
@@ -863,6 +864,46 @@ export default function AFrameSimulator() {
           laborCost={costs.laborCost}
           totalCost={costs.totalCost}
         />
+        )}
+
+        {/* Botão de Exportação PDF */}
+        {showResults && (
+        <div className="flex justify-center mt-8">
+          <PDFExportButton
+            simulationName="Simulacao de Chale A-frame"
+            base={base}
+            height={height}
+            length={length}
+            angle={data.angle}
+            faceLength={data.faceLength}
+            usefulWidth={data.usefulWidth}
+            utilization={data.utilization}
+            floorArea={data.totalArea}
+            volume={data.volume}
+            wallArea={data.wallArea}
+            concreteVolume={data.concreteVolume}
+            steelWeight={data.steelWeight}
+            epsVolume={data.epsVolume}
+            epsWeight={data.epsWeight}
+            iceflexQuantity={Math.ceil(data.wallArea / 7)}
+            icfibraQuantity={Math.ceil(data.wallArea / 50)}
+            concreteCost={costs.concreteCost}
+            steelCost={costs.steelCost}
+            epsCost={costs.epsCost}
+            accessoriesCost={costs.accessoriesCost}
+            iceflexCost={costs.iceflexCost}
+            icfibraCost={costs.icfibraCost}
+            laborCost={costs.laborCost}
+            totalCost={costs.totalCost}
+            laborServices={laborServices.map(s => ({
+              name: s.name,
+              quantity: s.quantity,
+              unit: s.unit,
+              unitPrice: s.unitPrice,
+              subtotal: s.quantity * s.unitPrice
+            }))}
+          />
+        </div>
         )}
 
         {/* Informações Normativas */}
