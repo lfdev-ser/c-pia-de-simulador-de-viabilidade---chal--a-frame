@@ -15,6 +15,9 @@ import CustomMaterials, { CustomMaterial } from './CustomMaterials';
 import Foundation, { FoundationBase } from './Foundation';
 import GeoTechnicalAnalysis from './GeoTechnicalAnalysis';
 import AFrame3DViewer from './AFrame3DViewer';
+import ExpandedPDFExportButton from './ExpandedPDFExportButton';
+import ShareSimulation from './ShareSimulation';
+import CollaborativeComments from './CollaborativeComments';
 
 interface SimulatorData {
   base: number;
@@ -203,6 +206,8 @@ export default function AFrameSimulator() {
   const [base, setBase] = useState(0.0);
   const [height, setHeight] = useState(0.0);
   const [length, setLength] = useState(0.0);
+  const [isSharedView, setIsSharedView] = useState(false);
+  const [sharedSimulationId, setSharedSimulationId] = useState('');
   
   // Carregar preços do localStorage ou usar padrão
   const [prices, setPrices] = useState<MaterialPrices>(() => {
@@ -481,6 +486,30 @@ export default function AFrameSimulator() {
   const validationWarnings = useMemo(() => {
     return getValidationWarnings(base, height, length, data.angle, data.utilization);
   }, [base, height, length, data.angle, data.utilization]);
+
+  // Detectar e carregar simulação compartilhada
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sharedData = params.get('shared');
+    
+    if (sharedData) {
+      try {
+        const decoded = JSON.parse(atob(sharedData));
+        setBase(decoded.base);
+        setHeight(decoded.height);
+        setLength(decoded.length);
+        setSharedSimulationId(decoded.id);
+        setIsSharedView(true);
+        toast.success(`Simulação compartilhada carregada: ${decoded.name}`, {
+          duration: 3000,
+          position: 'top-center',
+        });
+      } catch (error) {
+        console.error('Erro ao decodificar simulação compartilhada:', error);
+        toast.error('Erro ao carregar simulação compartilhada');
+      }
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#faf8f3] via-[#f5f3f0] to-[#faf8f3] py-12 px-4">
@@ -975,7 +1004,7 @@ export default function AFrameSimulator() {
         {/* Botão de Exportação PDF */}
         {showResults && (
         <div className="flex justify-center mt-8">
-          <PDFExportButton
+          <ExpandedPDFExportButton
             simulationName="Simulacao de Chale A-frame"
             base={base}
             height={height}
@@ -1001,6 +1030,8 @@ export default function AFrameSimulator() {
             icfibraCost={costs.icfibraCost}
             laborCost={costs.laborCost}
             totalCost={costs.totalCost}
+            customMaterialsCost={costs.customMaterialsCost || 0}
+            foundationCost={costs.foundationCost || 0}
             laborServices={laborServices.map(s => ({
               name: s.name,
               quantity: s.quantity,
@@ -1008,6 +1039,8 @@ export default function AFrameSimulator() {
               unitPrice: s.unitPrice,
               subtotal: s.quantity * s.unitPrice
             }))}
+            geoTechnicalData={geoTechnicalData}
+            foundation={foundation || undefined}
           />
         </div>
         )}
@@ -1050,6 +1083,23 @@ export default function AFrameSimulator() {
             </div>
           </Card>
         </div>
+        )}
+
+        {/* Compartilhamento e Comentários */}
+        {base > 0 && height > 0 && length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+            <ShareSimulation
+              simulationId={sharedSimulationId || `sim_${Date.now()}`}
+              simulationName={`Chalé ${base.toFixed(2)}m × ${height.toFixed(2)}m × ${length.toFixed(2)}m`}
+              base={base}
+              height={height}
+              length={length}
+            />
+            <CollaborativeComments
+              simulationId={sharedSimulationId || `sim_${Date.now()}`}
+              isShared={isSharedView}
+            />
+          </div>
         )}
 
         {/* Comparador Modal */}
