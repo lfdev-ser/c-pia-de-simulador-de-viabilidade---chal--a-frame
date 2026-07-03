@@ -13,6 +13,8 @@ import CostAnalysisCharts from './CostAnalysisCharts';
 import PDFExportButton from './PDFExportButton';
 import CustomMaterials, { CustomMaterial } from './CustomMaterials';
 import Foundation, { FoundationBase } from './Foundation';
+import GeoTechnicalAnalysis from './GeoTechnicalAnalysis';
+import AFrame3DViewer from './AFrame3DViewer';
 
 interface SimulatorData {
   base: number;
@@ -261,6 +263,16 @@ export default function AFrameSimulator() {
   // Pé direito customizável
   const [minFootHeight, setMinFootHeight] = useState<number>(DEFAULT_MIN_FOOT);
   
+  // Dados geotécnicos
+  const [geoTechnicalData, setGeoTechnicalData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('chaleGeoTechnical');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  
   // Salvar preços no localStorage quando mudarem
   useEffect(() => {
     localStorage.setItem('chalePrices', JSON.stringify(prices));
@@ -282,6 +294,13 @@ export default function AFrameSimulator() {
       localStorage.setItem('chaleFoundation', JSON.stringify(foundation));
     }
   }, [foundation]);
+  
+  // Salvar dados geotécnicos no localStorage quando mudarem
+  useEffect(() => {
+    if (geoTechnicalData) {
+      localStorage.setItem('chaleGeoTechnical', JSON.stringify(geoTechnicalData));
+    }
+  }, [geoTechnicalData]);
 
   const handleResetSimulation = () => {
     setBase(0.0);
@@ -930,6 +949,26 @@ export default function AFrameSimulator() {
           icfibraCost={costs.icfibraCost}
           laborCost={costs.laborCost}
           totalCost={costs.totalCost}
+        />
+        )}
+
+        {/* Visualização 3D */}
+        {showResults && (
+        <AFrame3DViewer
+          base={base}
+          height={height}
+          length={length}
+        />
+        )}
+
+        {/* Análise Geotécnica */}
+        {showResults && (
+        <GeoTechnicalAnalysis
+          base={base}
+          height={height}
+          length={length}
+          foundationType={foundation?.type || 'radié'}
+          onGeoDataChange={setGeoTechnicalData}
         />
         )}
 
