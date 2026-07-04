@@ -18,6 +18,7 @@ import AFrame3DViewer from './AFrame3DViewer';
 import ExpandedPDFExportButton from './ExpandedPDFExportButton';
 import ShareSimulation from './ShareSimulation';
 import CollaborativeComments from './CollaborativeComments';
+import AdvancedComparison from './AdvancedComparison';
 
 interface SimulatorData {
   base: number;
@@ -52,6 +53,25 @@ interface SavedSimulation {
   height: number;
   length: number;
   timestamp: number;
+}
+
+interface SavedSimulationWithCosts extends SavedSimulation {
+  data: SimulatorData;
+  costs: {
+    concreteCost: number;
+    steelCost: number;
+    epsCost: number;
+    accessoriesCost: number;
+    iceflexCost: number;
+    icfibraCost: number;
+    laborCost: number;
+    customMaterialsCost: number;
+    foundationCost: number;
+    iceflexBaldesNeeded: number;
+    icfibraRolosNeeded: number;
+    totalCost: number;
+    costPerM2: number;
+  };
 }
 
 interface ValidationWarning {
@@ -234,6 +254,9 @@ export default function AFrameSimulator() {
   const [resetTrigger, setResetTrigger] = useState(0);
   const [showResults, setShowResults] = useState(true);
   const [showComparador, setShowComparador] = useState(false);
+  const [showAdvancedComparison, setShowAdvancedComparison] = useState(false);
+  const [comparisonSim1, setComparisonSim1] = useState<SavedSimulationWithCosts | null>(null);
+  const [comparisonSim2, setComparisonSim2] = useState<SavedSimulationWithCosts | null>(null);
   
   // Carregar serviços de mão de obra do localStorage
   const [laborServices, setLaborServices] = useState<LaborService[]>(() => {
@@ -368,6 +391,161 @@ export default function AFrameSimulator() {
     setSavedSimulations(savedSimulations.filter(sim => sim.id !== id));
   };
 
+  const handleCompareSimulations = (sim1: SavedSimulation, sim2: SavedSimulation) => {
+    const b1 = sim1.base / 2;
+    const h1 = sim1.height;
+    const angleRad1 = Math.atan(h1 / b1);
+    const angleDeg1 = (angleRad1 * 180) / Math.PI;
+    const faceLength1 = Math.sqrt(b1 * b1 + h1 * h1);
+    const usefulWidthHalf1 = (b1 * (h1 - MIN_COMFORT)) / h1;
+    const usefulWidth1 = usefulWidthHalf1 * 2;
+    const utilization1 = (usefulWidth1 / sim1.base) * 100;
+    const totalArea1 = sim1.base * sim1.length;
+    const triangleArea1 = (sim1.base * h1) / 2;
+    const volume1 = triangleArea1 * sim1.length;
+    const lateralWallArea1 = 2 * (faceLength1 * sim1.length);
+    const frontalWallArea1 = 2 * triangleArea1;
+    const wallArea1 = lateralWallArea1 + frontalWallArea1;
+    const concreteVolume1 = wallArea1 * ICF_CONCRETE_PER_M2;
+    const steelWeight1 = wallArea1 * ICF_STEEL_PER_M2;
+    const epsVolume1 = wallArea1 * ICF_EPS_PER_M2;
+    const epsWeight1 = epsVolume1 * ICF_EPS_DENSITY;
+
+    const data1: SimulatorData = {
+      base: sim1.base,
+      height: sim1.height,
+      length: sim1.length,
+      angle: angleDeg1,
+      usefulWidth: usefulWidth1,
+      utilization: utilization1,
+      faceLength: faceLength1,
+      totalArea: totalArea1,
+      volume: volume1,
+      wallArea: wallArea1,
+      concreteVolume: concreteVolume1,
+      steelWeight: steelWeight1,
+      epsVolume: epsVolume1,
+      epsWeight: epsWeight1,
+    };
+
+    const concreteCost1 = data1.concreteVolume * prices.concretePerM3;
+    const steelCost1 = data1.steelWeight * prices.steelPerKg;
+    const epsFormsNeeded1 = data1.wallArea * 2;
+    const epsCost1 = epsFormsNeeded1 * prices.epsPerForm;
+    const accessoriesCost1 = data1.wallArea * prices.accessories;
+    const iceflexBaldesNeeded1 = Math.ceil(data1.wallArea / 7);
+    const iceflexCost1 = iceflexBaldesNeeded1 * prices.iceflex;
+    const icfibraRolosNeeded1 = Math.ceil(data1.wallArea / 50);
+    const icfibraCost1 = icfibraRolosNeeded1 * prices.icfibra;
+    const laborCost1 = laborServices.reduce((sum, service) => sum + (service.quantity * service.unitPrice), 0);
+    const customMaterialsCost1 = customMaterials.reduce((sum, material) => sum + (material.quantity * material.unitPrice), 0);
+    const foundationCost1 = foundation ? foundation.totalCost : 0;
+    const totalCost1 = concreteCost1 + steelCost1 + epsCost1 + accessoriesCost1 + iceflexCost1 + icfibraCost1 + laborCost1 + customMaterialsCost1 + foundationCost1;
+
+    const costs1 = {
+      concreteCost: concreteCost1,
+      steelCost: steelCost1,
+      epsCost: epsCost1,
+      accessoriesCost: accessoriesCost1,
+      iceflexCost: iceflexCost1,
+      icfibraCost: icfibraCost1,
+      laborCost: laborCost1,
+      customMaterialsCost: customMaterialsCost1,
+      foundationCost: foundationCost1,
+      iceflexBaldesNeeded: iceflexBaldesNeeded1,
+      icfibraRolosNeeded: icfibraRolosNeeded1,
+      totalCost: totalCost1,
+      icfTotalCost: concreteCost1 + steelCost1 + epsCost1 + accessoriesCost1 + iceflexCost1 + icfibraCost1,
+      costPerM2: data1.wallArea > 0 ? Math.round(((concreteCost1 + steelCost1 + epsCost1 + accessoriesCost1 + iceflexCost1 + icfibraCost1) / data1.wallArea) * 100) / 100 : 0,
+      costPerM2WithLabor: data1.wallArea > 0 ? Math.round((totalCost1 / data1.wallArea) * 100) / 100 : 0,
+      laborCostPerM2: data1.wallArea > 0 ? Math.round((laborCost1 / data1.wallArea) * 100) / 100 : 0,
+    };
+
+    const b2 = sim2.base / 2;
+    const h2 = sim2.height;
+    const angleRad2 = Math.atan(h2 / b2);
+    const angleDeg2 = (angleRad2 * 180) / Math.PI;
+    const faceLength2 = Math.sqrt(b2 * b2 + h2 * h2);
+    const usefulWidthHalf2 = (b2 * (h2 - MIN_COMFORT)) / h2;
+    const usefulWidth2 = usefulWidthHalf2 * 2;
+    const utilization2 = (usefulWidth2 / sim2.base) * 100;
+    const totalArea2 = sim2.base * sim2.length;
+    const triangleArea2 = (sim2.base * h2) / 2;
+    const volume2 = triangleArea2 * sim2.length;
+    const lateralWallArea2 = 2 * (faceLength2 * sim2.length);
+    const frontalWallArea2 = 2 * triangleArea2;
+    const wallArea2 = lateralWallArea2 + frontalWallArea2;
+    const concreteVolume2 = wallArea2 * ICF_CONCRETE_PER_M2;
+    const steelWeight2 = wallArea2 * ICF_STEEL_PER_M2;
+    const epsVolume2 = wallArea2 * ICF_EPS_PER_M2;
+    const epsWeight2 = epsVolume2 * ICF_EPS_DENSITY;
+
+    const data2: SimulatorData = {
+      base: sim2.base,
+      height: sim2.height,
+      length: sim2.length,
+      angle: angleDeg2,
+      usefulWidth: usefulWidth2,
+      utilization: utilization2,
+      faceLength: faceLength2,
+      totalArea: totalArea2,
+      volume: volume2,
+      wallArea: wallArea2,
+      concreteVolume: concreteVolume2,
+      steelWeight: steelWeight2,
+      epsVolume: epsVolume2,
+      epsWeight: epsWeight2,
+    };
+
+    const concreteCost2 = data2.concreteVolume * prices.concretePerM3;
+    const steelCost2 = data2.steelWeight * prices.steelPerKg;
+    const epsFormsNeeded2 = data2.wallArea * 2;
+    const epsCost2 = epsFormsNeeded2 * prices.epsPerForm;
+    const accessoriesCost2 = data2.wallArea * prices.accessories;
+    const iceflexBaldesNeeded2 = Math.ceil(data2.wallArea / 7);
+    const iceflexCost2 = iceflexBaldesNeeded2 * prices.iceflex;
+    const icfibraRolosNeeded2 = Math.ceil(data2.wallArea / 50);
+    const icfibraCost2 = icfibraRolosNeeded2 * prices.icfibra;
+    const laborCost2 = laborServices.reduce((sum, service) => sum + (service.quantity * service.unitPrice), 0);
+    const customMaterialsCost2 = customMaterials.reduce((sum, material) => sum + (material.quantity * material.unitPrice), 0);
+    const foundationCost2 = foundation ? foundation.totalCost : 0;
+    const totalCost2 = concreteCost2 + steelCost2 + epsCost2 + accessoriesCost2 + iceflexCost2 + icfibraCost2 + laborCost2 + customMaterialsCost2 + foundationCost2;
+
+    const costs2 = {
+      concreteCost: concreteCost2,
+      steelCost: steelCost2,
+      epsCost: epsCost2,
+      accessoriesCost: accessoriesCost2,
+      iceflexCost: iceflexCost2,
+      icfibraCost: icfibraCost2,
+      laborCost: laborCost2,
+      customMaterialsCost: customMaterialsCost2,
+      foundationCost: foundationCost2,
+      iceflexBaldesNeeded: iceflexBaldesNeeded2,
+      icfibraRolosNeeded: icfibraRolosNeeded2,
+      totalCost: totalCost2,
+      icfTotalCost: concreteCost2 + steelCost2 + epsCost2 + accessoriesCost2 + iceflexCost2 + icfibraCost2,
+      costPerM2: data2.wallArea > 0 ? Math.round(((concreteCost2 + steelCost2 + epsCost2 + accessoriesCost2 + iceflexCost2 + icfibraCost2) / data2.wallArea) * 100) / 100 : 0,
+      costPerM2WithLabor: data2.wallArea > 0 ? Math.round((totalCost2 / data2.wallArea) * 100) / 100 : 0,
+      laborCostPerM2: data2.wallArea > 0 ? Math.round((laborCost2 / data2.wallArea) * 100) / 100 : 0,
+    };
+
+    setComparisonSim1({ ...sim1, data: data1, costs: costs1 });
+    setComparisonSim2({ ...sim2, data: data2, costs: costs2 });
+    setShowAdvancedComparison(true);
+  };
+
+  const handleOpenComparisonModal = () => {
+    if (savedSimulations.length < 2) {
+      toast.error('Você precisa salvar pelo menos 2 simulações para comparar.', {
+        duration: 2000,
+        position: 'top-center',
+      });
+      return;
+    }
+    setShowComparador(true);
+  };
+
   const data = useMemo(() => {
     const b = base / 2;
     const h = height;
@@ -448,7 +626,22 @@ export default function AFrameSimulator() {
     // Cálculo de fundação
     const foundationCost = foundation ? foundation.totalCost : 0;
     
-    const totalCost = concreteCost + steelCost + epsCost + accessoriesCost + iceflexCost + icfibraCost + laborCost + customMaterialsCost + foundationCost;
+    // Custo total de ICF (estrutura + acabamento)
+    // Inclui: Concreto + Aço + EPS + Acessórios + Iceflex + ICFibra
+    const icfTotalCost = concreteCost + steelCost + epsCost + accessoriesCost + iceflexCost + icfibraCost;
+    
+    // Custo total incluindo mão de obra, materiais customizáveis e fundação
+    const totalCost = icfTotalCost + laborCost + customMaterialsCost + foundationCost;
+    
+    // Cálculo correto do custo por m² de parede (apenas componentes ICF)
+    // Inclui: concreto + aço + EPS + acessórios + Iceflex + ICFibra
+    const costPerM2ICF = data.wallArea > 0 ? Math.round((icfTotalCost / data.wallArea) * 100) / 100 : 0;
+    
+    // Cálculo do custo por m² de parede com mão de obra (quando preenchida)
+    const laborCostPerM2 = data.wallArea > 0 ? Math.round((laborCost / data.wallArea) * 100) / 100 : 0;
+    
+    // Custo total por m² de parede (ICF + mão de obra)
+    const costPerM2Total = data.wallArea > 0 ? Math.round((totalCost / data.wallArea) * 100) / 100 : 0;
     
     return {
       concreteCost,
@@ -462,8 +655,11 @@ export default function AFrameSimulator() {
       foundationCost,
       iceflexBaldesNeeded,
       icfibraRolosNeeded,
+      icfTotalCost,
       totalCost,
-      costPerM2: Math.round((totalCost / data.wallArea) * 100) / 100,
+      costPerM2: costPerM2ICF,
+      costPerM2WithLabor: costPerM2Total,
+      laborCostPerM2,
     };
   }, [data, prices, laborServices, customMaterials, foundation]);
 
