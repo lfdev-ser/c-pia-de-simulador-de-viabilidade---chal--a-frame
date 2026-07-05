@@ -3,7 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
-import { ArrowRight, TrendingDown, TrendingUp } from 'lucide-react';
+import { ArrowRight, TrendingDown, TrendingUp, Download } from 'lucide-react';
+import { exportComparisonToPDF } from '@/lib/exportComparationPDF';
 
 interface SavedSimulation {
   id: string;
@@ -342,6 +343,71 @@ export default function ComparadorSimulacoes({
         )}
 
         <div className="flex justify-end gap-2 mt-6">
+          {sim1 && sim2 && data1 && data2 && costs1 && costs2 && (
+            <Button 
+              onClick={() => {
+                const costPerM2Sim1 = costs1.totalCost / (data1.totalArea || 1);
+                const costPerM2Sim2 = costs2.totalCost / (data2.totalArea || 1);
+                const bestOption = costPerM2Sim1 < costPerM2Sim2 
+                  ? `Simulação 1 (${data1.base}m × ${data1.height}m × ${data1.length}m)` 
+                  : `Simulação 2 (${data2.base}m × ${data2.height}m × ${data2.length}m)`;
+                
+                const recommendation = costPerM2Sim1 < costPerM2Sim2
+                  ? `A Simulação 1 oferece melhor custo-benefício com R$ ${costPerM2Sim1.toFixed(2)}/m² útil, contra R$ ${costPerM2Sim2.toFixed(2)}/m² da Simulação 2.`
+                  : `A Simulação 2 oferece melhor custo-benefício com R$ ${costPerM2Sim2.toFixed(2)}/m² útil, contra R$ ${costPerM2Sim1.toFixed(2)}/m² da Simulação 1.`;
+
+                const comparisonData = {
+                  sim1: {
+                    name: sim1.name,
+                    base: sim1.base,
+                    height: sim1.height,
+                    length: sim1.length,
+                    angle: data1.angle,
+                    utilization: data1.utilization,
+                    volume: data1.volume,
+                    concreteVolume: data1.concreteVolume,
+                    steelWeight: data1.steelWeight,
+                    wallArea: data1.wallArea,
+                    totalCost: costs1.totalCost,
+                    costPerM2: costs1.costPerM2,
+                    iceflex: Math.ceil(data1.wallArea / 7),
+                    icfibra: Math.ceil(data1.wallArea / 50),
+                  },
+                  sim2: {
+                    name: sim2.name,
+                    base: sim2.base,
+                    height: sim2.height,
+                    length: sim2.length,
+                    angle: data2.angle,
+                    utilization: data2.utilization,
+                    volume: data2.volume,
+                    concreteVolume: data2.concreteVolume,
+                    steelWeight: data2.steelWeight,
+                    wallArea: data2.wallArea,
+                    totalCost: costs2.totalCost,
+                    costPerM2: costs2.costPerM2,
+                    iceflex: Math.ceil(data2.wallArea / 7),
+                    icfibra: Math.ceil(data2.wallArea / 50),
+                  },
+                  analysis: {
+                    recommendation,
+                    bestOption,
+                    costPerUsefulM2Sim1: costPerM2Sim1,
+                    costPerUsefulM2Sim2: costPerM2Sim2,
+                    costPerVolumeM3Sim1: costs1.totalCost / (data1.volume || 1),
+                    costPerVolumeM3Sim2: costs2.totalCost / (data2.volume || 1),
+                    spacialEfficiencySim1: data1.utilization,
+                    spacialEfficiencySim2: data2.utilization,
+                  },
+                };
+                exportComparisonToPDF(comparisonData);
+              }}
+              className="gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Exportar PDF
+            </Button>
+          )}
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Fechar
           </Button>
