@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Download, TrendingDown, TrendingUp } from 'lucide-react';
+import { Download, TrendingDown, TrendingUp, Lightbulb, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { generateIntelligentAnalysis } from '@/lib/intelligentAnalysis';
 
 interface SimulationData {
   base: number;
@@ -61,6 +62,12 @@ export default function AdvancedComparison({
   onClose,
 }: AdvancedComparisonProps) {
   const [showDetails, setShowDetails] = useState(false);
+  const [showAnalysis, setShowAnalysis] = useState(false);
+
+  const analysis = useMemo(
+    () => generateIntelligentAnalysis(sim1Name, sim1Data, sim1Costs, sim2Name, sim2Data, sim2Costs),
+    [sim1Name, sim1Data, sim1Costs, sim2Name, sim2Data, sim2Costs]
+  );
 
   // Calcular diferenças
   const differences = useMemo(() => {
@@ -329,12 +336,150 @@ export default function AdvancedComparison({
     }
   };
 
+  // Show analysis modal if requested
+  if (showAnalysis) {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 border-b border-blue-800 p-6 flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <Lightbulb className="w-6 h-6 text-yellow-300" />
+              <h2 className="text-2xl font-bold text-white">Análise Inteligente de Custo-Benefício</h2>
+            </div>
+            <button
+              onClick={() => setShowAnalysis(false)}
+              className="text-white hover:bg-blue-800 p-2 rounded"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="p-6 space-y-6">
+            {/* Winner Badge */}
+            <div className="flex items-center justify-center">
+              <div className={`px-6 py-3 rounded-lg text-center ${
+                analysis.winner === 'sim1'
+                  ? 'bg-green-100 border-2 border-green-500'
+                  : analysis.winner === 'sim2'
+                    ? 'bg-blue-100 border-2 border-blue-500'
+                    : 'bg-gray-100 border-2 border-gray-500'
+              }`}>
+                <p className={`text-lg font-bold ${
+                  analysis.winner === 'sim1'
+                    ? 'text-green-700'
+                    : analysis.winner === 'sim2'
+                      ? 'text-blue-700'
+                      : 'text-gray-700'
+                }`}>
+                  {analysis.winner === 'sim1'
+                    ? `🏆 ${sim1Name} é a melhor opção`
+                    : analysis.winner === 'sim2'
+                      ? `🏆 ${sim2Name} é a melhor opção`
+                      : '⚖️ Ambas as opções são viáveis'}
+                </p>
+              </div>
+            </div>
+
+            {/* Scores */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Pontuação de Custo-Benefício (0-100)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between mb-2">
+                      <span className="font-semibold">{sim1Name}</span>
+                      <span className="text-lg font-bold text-green-600">{analysis.scores.sim1Score}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-3">
+                      <div
+                        className="bg-green-600 h-3 rounded-full transition-all"
+                        style={{ width: `${analysis.scores.sim1Score}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between mb-2">
+                      <span className="font-semibold">{sim2Name}</span>
+                      <span className="text-lg font-bold text-blue-600">{analysis.scores.sim2Score}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-3">
+                      <div
+                        className="bg-blue-600 h-3 rounded-full transition-all"
+                        style={{ width: `${analysis.scores.sim2Score}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Analysis Details */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Análise Detalhada</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-sm font-semibold text-blue-900 mb-2">💰 Custo por m² de Parede (ICF)</p>
+                    <p className="text-sm text-blue-800">{analysis.metrics.costPerM2Comparison}</p>
+                  </div>
+
+                  <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                    <p className="text-sm font-semibold text-purple-900 mb-2">📦 Custo por Volume</p>
+                    <p className="text-sm text-purple-800">{analysis.metrics.costPerM3Comparison}</p>
+                  </div>
+
+                  <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                    <p className="text-sm font-semibold text-orange-900 mb-2">🏠 Custo por Área Útil</p>
+                    <p className="text-sm text-orange-800">{analysis.metrics.costPerUsefulM2Comparison}</p>
+                  </div>
+
+                  <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                    <p className="text-sm font-semibold text-green-900 mb-2">📐 Aproveitamento de Espaço</p>
+                    <p className="text-sm text-green-800">{analysis.metrics.spaceEfficiencyComparison}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Recommendation */}
+            <Card className="border-2 border-yellow-400 bg-yellow-50">
+              <CardHeader>
+                <CardTitle className="text-yellow-900">✨ Recomendação Final</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-yellow-900 leading-relaxed">{analysis.metrics.overallRecommendation}</p>
+              </CardContent>
+            </Card>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4">
+              <Button
+                onClick={() => setShowAnalysis(false)}
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
+              >
+                Voltar para Comparação
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-7xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
           <h2 className="text-2xl font-bold text-[#2d2d2d]">Comparação Detalhada</h2>
           <div className="flex gap-3">
+            <Button onClick={() => setShowAnalysis(true)} className="bg-blue-600 hover:bg-blue-700">
+              <Lightbulb className="w-4 h-4 mr-2" />
+              Análise Inteligente
+            </Button>
             <Button onClick={handleExportPDF} className="bg-green-600 hover:bg-green-700">
               <Download className="w-4 h-4 mr-2" />
               Exportar PDF
@@ -673,6 +818,92 @@ export default function AdvancedComparison({
           </Card>
         </div>
       </div>
+
+      {/* Analysis Modal */}
+      {showAnalysis && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-[#2d2d2d] flex items-center gap-2">
+                <Lightbulb className="w-6 h-6 text-blue-600" />
+                Análise Inteligente
+              </h2>
+              <button
+                onClick={() => setShowAnalysis(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-6 space-y-6">
+              {analysis && (
+                <>
+                  <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                    <h3 className="font-semibold text-blue-900 mb-2">Recomendação</h3>
+                    <p className="text-blue-800 leading-relaxed">{analysis.summary}</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-lg text-[#2d2d2d]">Análise Detalhada</h3>
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="bg-gray-50 p-4 rounded">
+                        <h4 className="font-semibold text-gray-700 mb-2">Custo por m² de Parede</h4>
+                        <p className="text-sm text-gray-600">{analysis.metrics.costPerM2Comparison}</p>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded">
+                        <h4 className="font-semibold text-gray-700 mb-2">Custo por m³ de Volume</h4>
+                        <p className="text-sm text-gray-600">{analysis.metrics.costPerM3Comparison}</p>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded">
+                        <h4 className="font-semibold text-gray-700 mb-2">Custo por m² Útil</h4>
+                        <p className="text-sm text-gray-600">{analysis.metrics.costPerUsefulM2Comparison}</p>
+                      </div>
+                      <div className="bg-gray-50 p-4 rounded">
+                        <h4 className="font-semibold text-gray-700 mb-2">Eficiência Espacial</h4>
+                        <p className="text-sm text-gray-600">{analysis.metrics.spaceEfficiencyComparison}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded">
+                    <h3 className="font-semibold text-green-900 mb-2">Recomendação Geral</h3>
+                    <p className="text-green-800 leading-relaxed">{analysis.metrics.overallRecommendation}</p>
+                  </div>
+
+                  <div className="bg-purple-50 border-l-4 border-purple-500 p-4 rounded">
+                    <h3 className="font-semibold text-purple-900 mb-3">Pontuação de Custo-Benefício</h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-purple-800 font-medium">{analysis.scores.sim1Label}</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-40 bg-purple-200 rounded-full h-2">
+                            <div className="bg-purple-600 h-2 rounded-full" style={{ width: `${(analysis.scores.sim1Score / 100) * 100}%` }}></div>
+                          </div>
+                          <span className="text-purple-900 font-bold">{analysis.scores.sim1Score}/100</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-purple-800 font-medium">{analysis.scores.sim2Label}</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-40 bg-purple-200 rounded-full h-2">
+                            <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${(analysis.scores.sim2Score / 100) * 100}%` }}></div>
+                          </div>
+                          <span className="text-purple-900 font-bold">{analysis.scores.sim2Score}/100</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+            <div className="border-t border-gray-200 p-6 flex justify-end gap-3">
+              <Button onClick={() => setShowAnalysis(false)} variant="outline">
+                Fechar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
