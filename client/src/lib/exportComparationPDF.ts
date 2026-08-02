@@ -46,12 +46,21 @@ interface ComparisonData {
   };
 }
 
-export function exportComparisonToPDF(data: ComparisonData) {
-  const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = 15;
-  let yPosition = margin;
+interface CustomizationData {
+  companyName: string;
+  companyLogo: string | null;
+  companyEmail: string;
+  companyPhone: string;
+  companyWebsite: string;
+}
+
+export function exportComparisonToPDF(data: ComparisonData, customization?: CustomizationData) {
+  try {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 15;
+    let yPosition = margin;
 
   // Helper function to add a section title
   const addSectionTitle = (title: string) => {
@@ -72,17 +81,58 @@ export function exportComparisonToPDF(data: ComparisonData) {
     }
   };
 
-  // Header
-  doc.setFontSize(18);
+  // Header with Company Info
+  let headerXPosition = margin;
+  
+  // Add logo if provided
+  if (customization?.companyLogo) {
+    try {
+      // Check if logo is a valid data URL or file path
+      if (typeof customization.companyLogo === 'string' && (customization.companyLogo.startsWith('data:') || customization.companyLogo.startsWith('blob:'))) {
+        try {
+          doc.addImage(customization.companyLogo, 'PNG', headerXPosition, yPosition, 20, 20);
+          headerXPosition += 25;
+        } catch (imgError) {
+          // Logo failed to load, skip it
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao adicionar logo:', error);
+    }
+  }
+  
+  // Company name and info
+  doc.setFontSize(16);
+  (doc as any).setFont(undefined, 'bold');
+  const companyName = customization?.companyName && customization.companyName.trim() ? customization.companyName : 'Relatório Comparativo';
+  doc.text(companyName, headerXPosition, yPosition + 5);
+  
+  doc.setFontSize(9);
+  (doc as any).setFont(undefined, 'normal');
+  let contactInfo = [];
+  if (customization?.companyEmail) contactInfo.push(customization.companyEmail);
+  if (customization?.companyPhone) contactInfo.push(customization.companyPhone);
+  if (customization?.companyWebsite) contactInfo.push(customization.companyWebsite);
+  
+  if (contactInfo.length > 0) {
+    try {
+      doc.text(contactInfo.join(' • '), headerXPosition, yPosition + 12);
+    } catch (error) {
+      console.error('Erro ao adicionar informações de contato:', error);
+    }
+  }
+  
+  yPosition += 30;
+  
+  // Report title and date
+  doc.setFontSize(12);
   (doc as any).setFont(undefined, 'bold');
   doc.text('Relatório Comparativo de Simulações', margin, yPosition);
-  yPosition += 10;
-
-  doc.setFontSize(10);
-  (doc as any).setFont(undefined, 'normal');
-  doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, margin, yPosition);
   yPosition += 5;
-  doc.text(`Hora: ${new Date().toLocaleTimeString('pt-BR')}`, margin, yPosition);
+  
+  doc.setFontSize(9);
+  (doc as any).setFont(undefined, 'normal');
+  doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')} - Hora: ${new Date().toLocaleTimeString('pt-BR')}`, margin, yPosition);
   yPosition += 10;
 
   // Simulation Names
@@ -328,4 +378,8 @@ export function exportComparisonToPDF(data: ComparisonData) {
   // Save PDF
   const fileName = `Comparacao_${data.sim1.name.replace(/\s+/g, '_')}_vs_${data.sim2.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
   doc.save(fileName);
+  } catch (error) {
+    console.error('Erro ao gerar PDF:', error);
+    throw new Error(`Erro ao exportar PDF: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+  }
 }

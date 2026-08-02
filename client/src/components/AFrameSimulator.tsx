@@ -19,6 +19,7 @@ import ExpandedPDFExportButton from './ExpandedPDFExportButton';
 import ShareSimulation from './ShareSimulation';
 import CollaborativeComments from './CollaborativeComments';
 import AdvancedComparison from './AdvancedComparison';
+import { EPSOptimizationWarning } from './EPSOptimizationWarning';
 
 interface SimulatorData {
   base: number;
@@ -1052,6 +1053,19 @@ export default function AFrameSimulator() {
 
               {/* Divider */}
               <div className="border-t border-[#e8e6e1] my-6"></div>
+
+              {/* EPS Optimization Warning */}
+              <EPSOptimizationWarning
+                baseWidth={base}
+                height={height}
+                length={length}
+                onOptimizationSuggested={(newBase, newHeight, newLength) => {
+                  setBase(newBase);
+                  setHeight(newHeight);
+                  setLength(newLength);
+                  toast.success('Dimensões otimizadas aplicadas!');
+                }}
+              />
 
               {/* Materiais ICF */}
               <h3 className="text-lg font-bold text-[#2d2d2d] mb-4">Materiais ICF</h3>
