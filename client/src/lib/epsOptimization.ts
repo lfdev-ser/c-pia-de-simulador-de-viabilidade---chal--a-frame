@@ -10,6 +10,13 @@ interface EPSBlockDimensions {
   thickness: number; // espessura em metros
 }
 
+interface EPSBlockDetails {
+  wholeBlocks: number; // blocos inteiros necessários
+  cutBlocks: number; // blocos que precisam ser cortados
+  totalBlocks: number; // total de blocos
+  wastePercentagePerBlock: number; // desperdício por bloco cortado
+}
+
 interface EPSOptimizationResult {
   totalWallArea: number; // área total de parede em m²
   currentEpsBlocks: number; // quantidade atual de blocos EPS
@@ -19,6 +26,10 @@ interface EPSOptimizationResult {
   hasWaste: boolean; // se há desperdício
   recommendation: string; // recomendação de otimização
   blocksPerMeter: number; // blocos por metro linear
+  blockDetails: EPSBlockDetails; // detalhes de blocos inteiros vs cortados
+  optimalBlockDetails: EPSBlockDetails; // detalhes otimizados
+  financialSavings: number; // economia financeira em reais
+  materialSavings: number; // economia de material em blocos
 }
 
 // Dimensões padrão dos blocos EPS (em metros)
@@ -29,16 +40,66 @@ const STANDARD_EPS_BLOCK: EPSBlockDimensions = {
 };
 
 /**
+ * Calcula detalhes de blocos EPS (inteiros vs cortados)
+ * @param length - comprimento em metros
+ * @param height - altura em metros
+ * @returns Detalhes dos blocos
+ */
+function calculateBlockDetails(length: number, height: number): EPSBlockDetails {
+  // Calcular quantos blocos cabem perfeitamente
+  const blocksLengthwise = Math.floor(length / STANDARD_EPS_BLOCK.length);
+  const blocksHeightwise = Math.floor(height / STANDARD_EPS_BLOCK.height);
+  
+  // Blocos inteiros
+  const wholeBlocks = blocksLengthwise * blocksHeightwise;
+  
+  // Verificar se há resto (blocos que precisam ser cortados)
+  const remainderLength = length % STANDARD_EPS_BLOCK.length;
+  const remainderHeight = height % STANDARD_EPS_BLOCK.height;
+  
+  let cutBlocks = 0;
+  let wastePercentagePerBlock = 0;
+  
+  if (remainderLength > 0.01) {
+    cutBlocks += blocksHeightwise; // uma coluna de blocos cortados
+  }
+  if (remainderHeight > 0.01) {
+    cutBlocks += blocksLengthwise; // uma linha de blocos cortados
+  }
+  if (remainderLength > 0.01 && remainderHeight > 0.01) {
+    cutBlocks += 1; // um bloco no canto cortado nos dois lados
+  }
+  
+  // Calcular desperdício por bloco cortado
+  if (cutBlocks > 0) {
+    const wasteArea = (remainderLength * STANDARD_EPS_BLOCK.height) + 
+                      (remainderHeight * STANDARD_EPS_BLOCK.length) - 
+                      (remainderLength * remainderHeight);
+    const blockArea = STANDARD_EPS_BLOCK.length * STANDARD_EPS_BLOCK.height;
+    wastePercentagePerBlock = (wasteArea / blockArea) * 100;
+  }
+  
+  return {
+    wholeBlocks,
+    cutBlocks,
+    totalBlocks: wholeBlocks + cutBlocks,
+    wastePercentagePerBlock: Math.round(wastePercentagePerBlock * 100) / 100,
+  };
+}
+
+/**
  * Calcula a otimização de EPS para uma simulação
  * @param baseWidth - largura da base em metros
  * @param height - altura da cumeeira em metros
  * @param length - comprimento em metros
+ * @param epsBlockPrice - preço por forma de EPS
  * @returns Resultado da otimização de EPS
  */
 export function calculateEPSOptimization(
   baseWidth: number,
   height: number,
-  length: number
+  length: number,
+  epsBlockPrice: number = 75.70 // preço padrão por forma de EPS
 ): EPSOptimizationResult {
   // Calcular área total de parede (4 paredes)
   // Duas paredes triangulares (telhado) + duas paredes retangulares
@@ -66,16 +127,25 @@ export function calculateEPSOptimization(
   
   const hasWaste = wastePercentage > 0.5; // considerar desperdício se > 0.5%
   
+  // Calcular detalhes de blocos
+  const blockDetails = calculateBlockDetails(length, height);
+  const optimalBlockDetails = calculateBlockDetails(optimalLength, optimalHeight);
+  
+  // Calcular economia
+  const blocksSaved = blockDetails.totalBlocks - optimalBlockDetails.totalBlocks;
+  const financialSavings = blocksSaved * epsBlockPrice * 2; // 2 formas por bloco
+  const materialSavings = blocksSaved;
+  
   // Gerar recomendação
   let recommendation = '';
-  if (hasWaste && wastePercentage < 5) {
-    recommendation = `✅ Desperdício mínimo (${wastePercentage.toFixed(1)}%). Dimensões otimizadas para EPS.`;
-  } else if (hasWaste && wastePercentage < 15) {
-    recommendation = `⚠️ Desperdício moderado (${wastePercentage.toFixed(1)}%). Considere ajustar para ${optimalLength.toFixed(2)}m × ${optimalHeight.toFixed(2)}m para otimizar.`;
-  } else if (hasWaste) {
-    recommendation = `🔴 Desperdício alto (${wastePercentage.toFixed(1)}%). Recomenda-se ajustar para ${optimalLength.toFixed(2)}m × ${optimalHeight.toFixed(2)}m para evitar recortes.`;
-  } else {
+  if (!hasWaste) {
     recommendation = `✅ Dimensões perfeitas! Sem desperdício de EPS.`;
+  } else if (wastePercentage < 5) {
+    recommendation = `✅ Desperdício mínimo (${wastePercentage.toFixed(1)}%). Dimensões otimizadas para EPS.`;
+  } else if (wastePercentage < 15) {
+    recommendation = `⚠️ Desperdício moderado (${wastePercentage.toFixed(1)}%). Considere ajustar para ${optimalLength.toFixed(2)}m × ${optimalHeight.toFixed(2)}m para otimizar e economizar R$ ${financialSavings.toFixed(2)}.`;
+  } else {
+    recommendation = `🔴 Desperdício alto (${wastePercentage.toFixed(1)}%). Recomenda-se ajustar para ${optimalLength.toFixed(2)}m × ${optimalHeight.toFixed(2)}m para evitar recortes e economizar R$ ${financialSavings.toFixed(2)}.`;
   }
   
   return {
@@ -87,6 +157,10 @@ export function calculateEPSOptimization(
     hasWaste,
     recommendation,
     blocksPerMeter: 2, // 2 formas por metro quadrado
+    blockDetails,
+    optimalBlockDetails,
+    financialSavings: Math.round(financialSavings * 100) / 100,
+    materialSavings,
   };
 }
 
@@ -146,3 +220,5 @@ export function suggestOptimizedDimensions(
     savings: Math.round(savings * 100) / 100,
   };
 }
+
+export type { EPSBlockDetails, EPSOptimizationResult };

@@ -1,4 +1,3 @@
-import React, { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -6,7 +5,9 @@ import { Card } from '@/components/ui/card';
 import { ArrowRight, TrendingDown, TrendingUp, Download } from 'lucide-react';
 import { exportComparisonToPDF } from '@/lib/exportComparationPDF';
 import { PDFCustomizationModal } from './PDFCustomizationModal';
+import { calculateEPSOptimization } from '@/lib/epsOptimization';
 import { toast } from 'sonner';
+import { useState, useMemo } from 'react';
 
 interface SavedSimulation {
   id: string;
@@ -108,22 +109,23 @@ export default function ComparadorSimulacoes({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Comparador de Simulações</DialogTitle>
+          <DialogTitle>Comparador de Simulações</DialogTitle>
         </DialogHeader>
 
+        {/* Selection Area */}
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div>
-            <label className="text-sm font-semibold text-[#2d2d2d] mb-2 block">Simulação 1</label>
+            <label className="text-sm font-medium text-[#2d2d2d] mb-2 block">Simulação 1</label>
             <Select value={sim1Id} onValueChange={setSim1Id}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecione uma simulação" />
+                <SelectValue placeholder="Selecione a primeira simulação" />
               </SelectTrigger>
               <SelectContent>
                 {savedSimulations.map(sim => (
                   <SelectItem key={sim.id} value={sim.id}>
-                    {sim.name}
+                    {sim.name} ({sim.base}m × {sim.height}m × {sim.length}m)
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -131,15 +133,15 @@ export default function ComparadorSimulacoes({
           </div>
 
           <div>
-            <label className="text-sm font-semibold text-[#2d2d2d] mb-2 block">Simulação 2</label>
+            <label className="text-sm font-medium text-[#2d2d2d] mb-2 block">Simulação 2</label>
             <Select value={sim2Id} onValueChange={setSim2Id}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecione uma simulação" />
+                <SelectValue placeholder="Selecione a segunda simulação" />
               </SelectTrigger>
               <SelectContent>
                 {savedSimulations.map(sim => (
                   <SelectItem key={sim.id} value={sim.id}>
-                    {sim.name}
+                    {sim.name} ({sim.base}m × {sim.height}m × {sim.length}m)
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -147,40 +149,47 @@ export default function ComparadorSimulacoes({
           </div>
         </div>
 
+        {/* Comparison Content */}
         {sim1 && sim2 && data1 && data2 && costs1 && costs2 && (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Dimensões */}
             <Card className="p-4">
               <h3 className="font-semibold text-[#2d2d2d] mb-4">📐 Dimensões</h3>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-4 gap-4">
                 <div>
-                  <p className="text-xs text-[#6b6b6b] mb-1">Largura da Base</p>
+                  <p className="text-xs text-[#6b6b6b] mb-1">Base</p>
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-[#15803d]">{sim1.base.toFixed(2)}m</span>
+                    <span className="font-bold text-[#15803d]">{data1.base}m</span>
                     <ArrowRight className="w-4 h-4 text-[#999]" />
-                    <span className="font-bold text-[#15803d]">{sim2.base.toFixed(2)}m</span>
+                    <span className="font-bold text-[#15803d]">{data2.base}m</span>
                   </div>
-                  <DifferenceIndicator value1={sim1.base} value2={sim2.base} />
                 </div>
 
                 <div>
-                  <p className="text-xs text-[#6b6b6b] mb-1">Altura da Cumeeira</p>
+                  <p className="text-xs text-[#6b6b6b] mb-1">Altura</p>
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-[#15803d]">{sim1.height.toFixed(2)}m</span>
+                    <span className="font-bold text-[#15803d]">{data1.height}m</span>
                     <ArrowRight className="w-4 h-4 text-[#999]" />
-                    <span className="font-bold text-[#15803d]">{sim2.height.toFixed(2)}m</span>
+                    <span className="font-bold text-[#15803d]">{data2.height}m</span>
                   </div>
-                  <DifferenceIndicator value1={sim1.height} value2={sim2.height} />
                 </div>
 
                 <div>
                   <p className="text-xs text-[#6b6b6b] mb-1">Comprimento</p>
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-[#15803d]">{sim1.length.toFixed(2)}m</span>
+                    <span className="font-bold text-[#15803d]">{data1.length}m</span>
                     <ArrowRight className="w-4 h-4 text-[#999]" />
-                    <span className="font-bold text-[#15803d]">{sim2.length.toFixed(2)}m</span>
+                    <span className="font-bold text-[#15803d]">{data2.length}m</span>
                   </div>
-                  <DifferenceIndicator value1={sim1.length} value2={sim2.length} />
+                </div>
+
+                <div>
+                  <p className="text-xs text-[#6b6b6b] mb-1">Ângulo</p>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-[#15803d]">{data1.angle}°</span>
+                    <ArrowRight className="w-4 h-4 text-[#999]" />
+                    <span className="font-bold text-[#15803d]">{data2.angle}°</span>
+                  </div>
                 </div>
               </div>
             </Card>
@@ -189,16 +198,6 @@ export default function ComparadorSimulacoes({
             <Card className="p-4">
               <h3 className="font-semibold text-[#2d2d2d] mb-4">📊 Resultados</h3>
               <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <p className="text-xs text-[#6b6b6b] mb-1">Ângulo de Inclinação</p>
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-[#15803d]">{data1.angle.toFixed(1)}°</span>
-                    <ArrowRight className="w-4 h-4 text-[#999]" />
-                    <span className="font-bold text-[#15803d]">{data2.angle.toFixed(1)}°</span>
-                  </div>
-                  <DifferenceIndicator value1={data1.angle} value2={data2.angle} />
-                </div>
-
                 <div>
                   <p className="text-xs text-[#6b6b6b] mb-1">Aproveitamento do Piso</p>
                   <div className="flex items-center justify-between">
@@ -373,6 +372,10 @@ export default function ComparadorSimulacoes({
             }
             setIsExporting(true);
             try {
+              // Calculate EPS optimization for both simulations
+              const epsOpt1 = calculateEPSOptimization(sim1.base, sim1.height, sim1.length, 75.70);
+              const epsOpt2 = calculateEPSOptimization(sim2.base, sim2.height, sim2.length, 75.70);
+
               const costPerM2Sim1 = costs1.totalCost / (data1.totalArea || 1);
               const costPerM2Sim2 = costs2.totalCost / (data2.totalArea || 1);
               const bestOption = costPerM2Sim1 < costPerM2Sim2 
@@ -399,6 +402,16 @@ export default function ComparadorSimulacoes({
                   costPerM2: costs1.costPerM2,
                   iceflex: Math.ceil(data1.wallArea / 7),
                   icfibra: Math.ceil(data1.wallArea / 50),
+                  epsOptimization: {
+                    wastePercentage: epsOpt1.wastePercentage,
+                    wholeBlocks: epsOpt1.blockDetails.wholeBlocks,
+                    cutBlocks: epsOpt1.blockDetails.cutBlocks,
+                    totalBlocks: epsOpt1.blockDetails.totalBlocks,
+                    optimalLength: epsOpt1.optimalLength,
+                    optimalHeight: epsOpt1.optimalHeight,
+                    financialSavings: epsOpt1.financialSavings,
+                    materialSavings: epsOpt1.materialSavings,
+                  },
                 },
                 sim2: {
                   name: sim2.name,
@@ -415,6 +428,16 @@ export default function ComparadorSimulacoes({
                   costPerM2: costs2.costPerM2,
                   iceflex: Math.ceil(data2.wallArea / 7),
                   icfibra: Math.ceil(data2.wallArea / 50),
+                  epsOptimization: {
+                    wastePercentage: epsOpt2.wastePercentage,
+                    wholeBlocks: epsOpt2.blockDetails.wholeBlocks,
+                    cutBlocks: epsOpt2.blockDetails.cutBlocks,
+                    totalBlocks: epsOpt2.blockDetails.totalBlocks,
+                    optimalLength: epsOpt2.optimalLength,
+                    optimalHeight: epsOpt2.optimalHeight,
+                    financialSavings: epsOpt2.financialSavings,
+                    materialSavings: epsOpt2.materialSavings,
+                  },
                 },
                 analysis: {
                   recommendation,

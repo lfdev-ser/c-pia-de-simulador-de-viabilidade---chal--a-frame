@@ -1,6 +1,17 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
+interface EPSOptimizationInfo {
+  wastePercentage: number;
+  wholeBlocks: number;
+  cutBlocks: number;
+  totalBlocks: number;
+  optimalLength: number;
+  optimalHeight: number;
+  financialSavings: number;
+  materialSavings: number;
+}
+
 interface ComparisonData {
   sim1: {
     name: string;
@@ -17,6 +28,7 @@ interface ComparisonData {
     costPerM2: number;
     iceflex: number;
     icfibra: number;
+    epsOptimization?: EPSOptimizationInfo;
   };
   sim2: {
     name: string;
@@ -33,6 +45,7 @@ interface ComparisonData {
     costPerM2: number;
     iceflex: number;
     icfibra: number;
+    epsOptimization?: EPSOptimizationInfo;
   };
   analysis: {
     recommendation: string;
@@ -353,6 +366,64 @@ export function exportComparisonToPDF(data: ComparisonData, customization?: Cust
   (doc as any).text(`• Custo por m³ Sim 1: R$ ${data.analysis.costPerVolumeM3Sim1.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, margin + 5, yPosition);
   yPosition += 4;
   (doc as any).text(`• Custo por m³ Sim 2: R$ ${data.analysis.costPerVolumeM3Sim2.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, margin + 5, yPosition);
+
+  // EPS Optimization Analysis
+  if (data.sim1.epsOptimization || data.sim2.epsOptimization) {
+    checkPageBreak(80);
+    addSectionTitle('🔧 Otimização de EPS (ICF)');
+
+    // Simulation 1 EPS Optimization
+    if (data.sim1.epsOptimization) {
+      const eps1 = data.sim1.epsOptimization;
+      doc.setFontSize(11);
+      (doc as any).setFont(undefined, 'bold');
+      doc.text(`${data.sim1.name} - Análise de Blocos EPS`, margin, yPosition);
+      yPosition += 6;
+
+      doc.setFontSize(10);
+      (doc as any).setFont(undefined, 'normal');
+      (doc as any).text(`• Desperdício Atual: ${eps1.wastePercentage.toFixed(1)}%`, margin + 5, yPosition);
+      yPosition += 4;
+      (doc as any).text(`• Blocos Inteiros: ${eps1.wholeBlocks}`, margin + 5, yPosition);
+      yPosition += 4;
+      (doc as any).text(`• Blocos Cortados: ${eps1.cutBlocks}`, margin + 5, yPosition);
+      yPosition += 4;
+      (doc as any).text(`• Total de Blocos: ${eps1.totalBlocks}`, margin + 5, yPosition);
+      yPosition += 4;
+      (doc as any).text(`• Dimensões Otimizadas: ${eps1.optimalLength.toFixed(2)}m × ${eps1.optimalHeight.toFixed(2)}m`, margin + 5, yPosition);
+      yPosition += 4;
+      (doc as any).text(`• Economia Financeira: R$ ${eps1.financialSavings.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, margin + 5, yPosition);
+      yPosition += 4;
+      (doc as any).text(`• Economia de Material: ${eps1.materialSavings.toFixed(0)} blocos`, margin + 5, yPosition);
+      yPosition += 8;
+    }
+
+    // Simulation 2 EPS Optimization
+    if (data.sim2.epsOptimization) {
+      const eps2 = data.sim2.epsOptimization;
+      doc.setFontSize(11);
+      (doc as any).setFont(undefined, 'bold');
+      doc.text(`${data.sim2.name} - Análise de Blocos EPS`, margin, yPosition);
+      yPosition += 6;
+
+      doc.setFontSize(10);
+      (doc as any).setFont(undefined, 'normal');
+      (doc as any).text(`• Desperdício Atual: ${eps2.wastePercentage.toFixed(1)}%`, margin + 5, yPosition);
+      yPosition += 4;
+      (doc as any).text(`• Blocos Inteiros: ${eps2.wholeBlocks}`, margin + 5, yPosition);
+      yPosition += 4;
+      (doc as any).text(`• Blocos Cortados: ${eps2.cutBlocks}`, margin + 5, yPosition);
+      yPosition += 4;
+      (doc as any).text(`• Total de Blocos: ${eps2.totalBlocks}`, margin + 5, yPosition);
+      yPosition += 4;
+      (doc as any).text(`• Dimensões Otimizadas: ${eps2.optimalLength.toFixed(2)}m × ${eps2.optimalHeight.toFixed(2)}m`, margin + 5, yPosition);
+      yPosition += 4;
+      (doc as any).text(`• Economia Financeira: R$ ${eps2.financialSavings.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, margin + 5, yPosition);
+      yPosition += 4;
+      (doc as any).text(`• Economia de Material: ${eps2.materialSavings.toFixed(0)} blocos`, margin + 5, yPosition);
+      yPosition += 8;
+    }
+  }
 
   // Footer
   const pageCount = (doc as any).internal.getNumberOfPages();
