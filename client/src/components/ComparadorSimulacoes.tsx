@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { ArrowRight, TrendingDown, TrendingUp, Download } from 'lucide-react';
 import { exportComparisonToPDF } from '@/lib/exportComparationPDF';
 import { PDFCustomizationModal } from './PDFCustomizationModal';
+import { PDFShareButton } from './PDFShareButton';
 import { calculateEPSOptimization } from '@/lib/epsOptimization';
 import { toast } from 'sonner';
 import { useState, useMemo } from 'react';
@@ -345,15 +346,22 @@ export default function ComparadorSimulacoes({
           </div>
         )}
 
-        <div className="flex justify-end gap-2 mt-6">
+        <div className="flex justify-end gap-2 mt-6 flex-wrap">
           {sim1 && sim2 && data1 && data2 && costs1 && costs2 && (
-            <Button 
-              onClick={() => setShowCustomizationModal(true)}
-              className="gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Exportar PDF
-            </Button>
+            <>
+              <Button 
+                onClick={() => setShowCustomizationModal(true)}
+                className="gap-2"
+              >
+                <Download className="w-4 h-4" />
+                Exportar PDF
+              </Button>
+              <PDFShareButton
+                fileName={`comparacao-chale-${new Date().toISOString().split('T')[0]}.pdf`}
+                projectName={`Comparação: ${sim1.name} vs ${sim2.name}`}
+                projectDetails={`Simulação 1: ${sim1.base.toFixed(2)}m × ${sim1.height.toFixed(2)}m \nSimulação 2: ${sim2.base.toFixed(2)}m × ${sim2.height.toFixed(2)}m \nDiferença: R$ ${Math.abs(costs2.totalCost - costs1.totalCost).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+              />
+            </>
           )}
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Fechar

@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Trash2, Download, Upload, Eye, MoreVertical } from 'lucide-react';
+import { Trash2, Download, Upload, Eye, MoreVertical, BarChart3 } from 'lucide-react';
+import { ComparisonCostChart } from './ComparisonCostChart';
 import {
   getHistory,
   deleteComparison,
@@ -29,6 +30,7 @@ export function ComparisonHistory({
   const [history, setHistory] = useState<ComparisonRecord[]>([]);
   const [stats, setStats] = useState({ totalComparisons: 0, averageCostDifference: 0, mostCommonBestOption: '' });
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [showChart, setShowChart] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -128,6 +130,15 @@ export function ComparisonHistory({
             Importar
           </Button>
           <Button
+            onClick={() => setShowChart(!showChart)}
+            variant="outline"
+            className="gap-2"
+            disabled={history.length === 0}
+          >
+            <BarChart3 className="w-4 h-4" />
+            {showChart ? 'Ocultar' : 'Ver'} Gráficos
+          </Button>
+          <Button
             onClick={handleClearAll}
             variant="destructive"
             className="gap-2 ml-auto"
@@ -137,6 +148,13 @@ export function ComparisonHistory({
             Limpar Tudo
           </Button>
         </div>
+
+        {/* Cost Comparison Chart */}
+        {showChart && history.length > 0 && (
+          <div className="mb-6 border-t border-[#e8e6e1] pt-6">
+            <ComparisonCostChart comparisons={history} />
+          </div>
+        )}
 
         {/* History List */}
         {history.length > 0 ? (

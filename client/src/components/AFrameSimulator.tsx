@@ -21,6 +21,7 @@ import CollaborativeComments from './CollaborativeComments';
 import AdvancedComparison from './AdvancedComparison';
 import { EPSOptimizationWarning } from './EPSOptimizationWarning';
 import { EPSMultipleValidation } from './EPSMultipleValidation';
+import { EPSBlockVisualization } from './EPSBlockVisualization';
 import { ComparisonHistory } from './ComparisonHistory';
 import { saveComparison } from '@/lib/comparisonHistory';
 import { ComparisonRecord } from '@/lib/comparisonHistory';
@@ -1228,6 +1229,15 @@ export default function AFrameSimulator() {
           base={base}
           height={height}
           length={length}
+        />
+        )}
+
+        {/* Visualização 2D de Blocos EPS */}
+        {showResults && (
+        <EPSBlockVisualization
+          length={length}
+          height={height}
+          baseWidth={base}
         />
         )}
 
