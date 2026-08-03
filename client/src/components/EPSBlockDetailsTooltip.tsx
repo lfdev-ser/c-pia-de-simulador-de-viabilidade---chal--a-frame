@@ -119,8 +119,9 @@ export function EPSBlockDetailsTooltip({
               <p className="font-semibold mb-1">📋 Dimensões Padrão de Blocos EPS:</p>
               <ul className="list-disc list-inside space-y-0.5">
                 <li>Comprimento: 1.25m</li>
-                <li>Altura: 0.25m (25cm)</li>
+                <li>Altura: 0.40m (40cm) - CORRIGIDO</li>
                 <li>Espessura: 0.30m (30cm)</li>
+                <li>Cada 2 formas = 1m² de parede</li>
               </ul>
             </div>
           </div>
