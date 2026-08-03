@@ -35,9 +35,13 @@ interface EPSOptimizationResult {
 // Dimensões padrão dos blocos EPS (em metros)
 const STANDARD_EPS_BLOCK: EPSBlockDimensions = {
   length: 1.25, // comprimento padrão
-  height: 0.25, // altura padrão (25cm)
+  height: 0.40, // altura padrão (40cm) - CORRIGIDO
   thickness: 0.30, // espessura padrão (30cm)
 };
+
+// Constantes de cálculo de concreto e aço
+const CONCRETE_PER_M2_WALL = 72; // litros por m² de parede
+const STEEL_PER_M2_WALL = 5; // kg por m² de parede
 
 /**
  * Calcula detalhes de blocos EPS (inteiros vs cortados)

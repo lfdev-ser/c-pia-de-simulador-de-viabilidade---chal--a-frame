@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { generateTechnicalReport } from './technicalReport';
 
 interface EPSOptimizationInfo {
   wastePercentage: number;
@@ -424,6 +425,143 @@ export function exportComparisonToPDF(data: ComparisonData, customization?: Cust
       yPosition += 8;
     }
   }
+
+  // Technical Report Section - Best Option
+  const bestSim = data.analysis.bestOption.includes('Simulação 1') ? data.sim1 : data.sim2;
+  const bestData = data.analysis.bestOption.includes('Simulação 1') ? data.sim1 : data.sim2;
+  
+  checkPageBreak(100);
+  addSectionTitle('📋 Relatório Técnico Detalhado');
+  
+  // Generate technical report for best option
+  const technicalReport = generateTechnicalReport(
+    bestSim.name,
+    bestSim.base,
+    bestSim.height,
+    bestSim.length,
+    bestSim.wallArea * 1.5, // aproximado
+    bestSim.wallArea,
+    bestSim.volume,
+    bestSim.concreteVolume,
+    bestSim.steelWeight,
+    Math.ceil(bestSim.wallArea / 7),
+    Math.ceil(bestSim.wallArea / 50),
+    bestSim.totalCost,
+    bestSim.costPerM2
+  );
+  
+  // Especificações de Materiais
+  doc.setFontSize(11);
+  (doc as any).setFont(undefined, 'bold');
+  doc.text('Especificações de Materiais:', margin, yPosition);
+  yPosition += 6;
+  
+  const materialTableData = [
+    ['Material', 'Quantidade', 'Unidade', 'Preço Unit.', 'Total'],
+    ...technicalReport.materials.map(m => [
+      m.name,
+      m.quantity.toFixed(2),
+      m.unit,
+      `R$ ${m.unitPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      `R$ ${m.totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+    ]),
+  ];
+  
+  (doc as any).autoTable({
+    head: [materialTableData[0]],
+    body: materialTableData.slice(1),
+    startY: yPosition,
+    margin: margin,
+    theme: 'grid',
+    headStyles: { fillColor: [100, 150, 200], textColor: 255, fontStyle: 'bold' },
+    bodyStyles: { textColor: 0, fontSize: 9 },
+    alternateRowStyles: { fillColor: [240, 240, 240] },
+  });
+  
+  yPosition = ((doc as any).lastAutoTable?.finalY || yPosition) + 8;
+  
+  // Cronograma de Construção
+  checkPageBreak(80);
+  addSectionTitle('⏱️ Cronograma de Construção');
+  
+  doc.setFontSize(10);
+  (doc as any).setFont(undefined, 'normal');
+  doc.text(`Duração Total Estimada: ${technicalReport.totalDuration} dias`, margin, yPosition);
+  yPosition += 6;
+  
+  const timelineTableData = [
+    ['Fase', 'Descrição', 'Duração', 'Dias'],
+    ...technicalReport.constructionTimeline.map(phase => [
+      `${phase.phase}. ${phase.name}`,
+      phase.description,
+      `${phase.duration} dias`,
+      `${phase.startDay}-${phase.endDay}`,
+    ]),
+  ];
+  
+  (doc as any).autoTable({
+    head: [timelineTableData[0]],
+    body: timelineTableData.slice(1),
+    startY: yPosition,
+    margin: margin,
+    theme: 'grid',
+    headStyles: { fillColor: [76, 175, 80], textColor: 255, fontStyle: 'bold' },
+    bodyStyles: { textColor: 0, fontSize: 8 },
+    alternateRowStyles: { fillColor: [240, 248, 240] },
+    columnStyles: {
+      0: { cellWidth: 25 },
+      1: { cellWidth: 50 },
+      2: { cellWidth: 25 },
+      3: { cellWidth: 25 },
+    },
+  });
+  
+  yPosition = ((doc as any).lastAutoTable?.finalY || yPosition) + 8;
+  
+  // Padrões de Qualidade
+  checkPageBreak(60);
+  addSectionTitle('✅ Padrões de Qualidade');
+  
+  doc.setFontSize(9);
+  (doc as any).setFont(undefined, 'normal');
+  technicalReport.qualityStandards.forEach((standard, index) => {
+    if (yPosition > pageHeight - margin - 10) {
+      doc.addPage();
+      yPosition = margin;
+    }
+    doc.text(`${index + 1}. ${standard}`, margin + 5, yPosition);
+    yPosition += 4;
+  });
+  
+  // Requisitos de Segurança
+  checkPageBreak(60);
+  addSectionTitle('🛡️ Requisitos de Segurança');
+  
+  doc.setFontSize(9);
+  (doc as any).setFont(undefined, 'normal');
+  technicalReport.safetyRequirements.forEach((requirement, index) => {
+    if (yPosition > pageHeight - margin - 10) {
+      doc.addPage();
+      yPosition = margin;
+    }
+    doc.text(`${index + 1}. ${requirement}`, margin + 5, yPosition);
+    yPosition += 4;
+  });
+  
+  // Considerações Ambientais
+  checkPageBreak(60);
+  addSectionTitle('🌱 Considerações Ambientais');
+  
+  doc.setFontSize(9);
+  (doc as any).setFont(undefined, 'normal');
+  technicalReport.environmentalConsiderations.forEach((consideration, index) => {
+    if (yPosition > pageHeight - margin - 10) {
+      doc.addPage();
+      yPosition = margin;
+    }
+    doc.text(`${index + 1}. ${consideration}`, margin + 5, yPosition);
+    yPosition += 4;
+  });
 
   // Footer
   const pageCount = (doc as any).internal.getNumberOfPages();

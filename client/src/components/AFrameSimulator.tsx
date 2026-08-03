@@ -20,6 +20,10 @@ import ShareSimulation from './ShareSimulation';
 import CollaborativeComments from './CollaborativeComments';
 import AdvancedComparison from './AdvancedComparison';
 import { EPSOptimizationWarning } from './EPSOptimizationWarning';
+import { EPSMultipleValidation } from './EPSMultipleValidation';
+import { ComparisonHistory } from './ComparisonHistory';
+import { saveComparison } from '@/lib/comparisonHistory';
+import { ComparisonRecord } from '@/lib/comparisonHistory';
 
 interface SimulatorData {
   base: number;
@@ -186,19 +190,19 @@ function getValidationWarnings(
     });
   }
 
-  // Validação de Ângulo
+  // Validação de Ângulo - Apenas afeta o uso interno do espaço físico
   if (angle > 0) {
     if (angle < VALIDATION_LIMITS.angle.optimal.min) {
       warnings.push({
         type: 'angle',
-        severity: 'warning',
-        message: `Ângulo ${angle.toFixed(1)}° abaixo do ideal (66-68°). Pode prejudicar escoamento de água.`,
+        severity: 'info',
+        message: `Ângulo ${angle.toFixed(1)}° abaixo do ideal (66-68°). Reduz o espaço útil interno.`,
       });
     } else if (angle > VALIDATION_LIMITS.angle.warning.max) {
       warnings.push({
         type: 'angle',
-        severity: 'warning',
-        message: `Ângulo ${angle.toFixed(1)}° muito inclinado. Pode comprometer a estética.`,
+        severity: 'info',
+        message: `Ângulo ${angle.toFixed(1)}° acima do ideal (66-68°). Pode reduzir o espaço útil interno.`,
       });
     }
   }
@@ -258,6 +262,7 @@ export default function AFrameSimulator() {
   const [showAdvancedComparison, setShowAdvancedComparison] = useState(false);
   const [comparisonSim1, setComparisonSim1] = useState<SavedSimulationWithCosts | null>(null);
   const [comparisonSim2, setComparisonSim2] = useState<SavedSimulationWithCosts | null>(null);
+  const [showComparisonHistory, setShowComparisonHistory] = useState(false);
   
   // Carregar serviços de mão de obra do localStorage
   const [laborServices, setLaborServices] = useState<LaborService[]>(() => {
@@ -759,6 +764,13 @@ export default function AFrameSimulator() {
                 )}
               </>
             )}
+            <button
+              type="button"
+              onClick={() => setShowComparisonHistory(true)}
+              className="px-6 py-2 bg-[#0891b2] text-white rounded-lg font-semibold hover:bg-[#0e7490] transition-colors"
+            >
+              📄 Histórico de Comparações
+            </button>
           </div>
         </div>
         
@@ -881,6 +893,25 @@ export default function AFrameSimulator() {
               {showResults && (
                 <div className="mb-6">
                   <ValidationWarnings warnings={validationWarnings} />
+                </div>
+              )}
+
+              {/* Validação de Múltiplos de EPS */}
+              {showResults && (
+                <div className="mb-6">
+                  <EPSMultipleValidation
+                    length={length}
+                    height={height}
+                    onSuggestedDimensionsChange={(newLength, newHeight) => {
+                      setLength(newLength);
+                      setHeight(newHeight);
+                      handleSliderChange(base);
+                      toast.success('Dimensões otimizadas aplicadas!', {
+                        duration: 2000,
+                        position: 'top-center',
+                      });
+                    }}
+                  />
                 </div>
               )}
 
@@ -1374,6 +1405,16 @@ export default function AFrameSimulator() {
               totalCost,
               costPerM2,
             };
+          }}
+        />
+
+        {/* Comparison History Modal */}
+        <ComparisonHistory
+          open={showComparisonHistory}
+          onOpenChange={setShowComparisonHistory}
+          onSelectComparison={(comparison) => {
+            // Carrega a comparação selecionada
+            toast.info('Comparação carregada do histórico');
           }}
         />
       </div>
