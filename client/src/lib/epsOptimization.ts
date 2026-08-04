@@ -106,15 +106,18 @@ export function calculateEPSOptimization(
   epsBlockPrice: number = 75.70 // preço padrão por forma de EPS
 ): EPSOptimizationResult {
   // Calcular área total de parede (4 paredes)
-  // Duas paredes triangulares (telhado) + duas paredes retangulares
-  const triangularArea = (baseWidth * height) / 2; // área de um triângulo
-  const rectangularArea = length * 2.1; // altura mínima de pé-direito (2.1m)
+  // Duas paredes triangulares (frente/fundo A-frame) + duas paredes retangulares (laterais)
+  // CORREÇÃO: Usar altura real, não 2.1m fixo
+  const triangularArea = (baseWidth * height) / 2; // área de um triângulo (frente/fundo)
+  const rectangularArea = length * height; // área de parede lateral (comprimento x altura real)
   
+  // Total: 2 paredes triangulares (frente/fundo) + 2 paredes retangulares (laterais)
   const totalWallArea = (triangularArea * 2) + (rectangularArea * 2);
   
   // Calcular quantidade atual de blocos EPS
-  // Cada bloco EPS cobre 2 formas por metro quadrado
-  const currentEpsBlocks = Math.ceil((totalWallArea / 2) * 2);
+  // Cada 2 formas = 1m² de parede
+  // Logo: 2 formas por m² de parede
+  const currentEpsBlocks = Math.ceil(totalWallArea * 2); // 2 formas por m²
   
   // Calcular múltiplos ideais para evitar recortes
   const optimalLengthMultiples = Math.ceil(length / STANDARD_EPS_BLOCK.length);

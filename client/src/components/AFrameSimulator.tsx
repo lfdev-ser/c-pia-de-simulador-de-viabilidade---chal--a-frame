@@ -410,7 +410,8 @@ export default function AFrameSimulator() {
     const totalArea1 = sim1.base * sim1.length;
     const triangleArea1 = (sim1.base * h1) / 2;
     const volume1 = triangleArea1 * sim1.length;
-    const lateralWallArea1 = 2 * (faceLength1 * sim1.length);
+    // CORREÇÃO: Paredes laterais = altura real × comprimento, não diagonal
+    const lateralWallArea1 = 2 * (h1 * sim1.length);
     const frontalWallArea1 = 2 * triangleArea1;
     const wallArea1 = lateralWallArea1 + frontalWallArea1;
     const concreteVolume1 = wallArea1 * ICF_CONCRETE_PER_M2;
@@ -479,7 +480,8 @@ export default function AFrameSimulator() {
     const totalArea2 = sim2.base * sim2.length;
     const triangleArea2 = (sim2.base * h2) / 2;
     const volume2 = triangleArea2 * sim2.length;
-    const lateralWallArea2 = 2 * (faceLength2 * sim2.length);
+    // CORREÇÃO: Paredes laterais = altura real × comprimento, não diagonal
+    const lateralWallArea2 = 2 * (h2 * sim2.length);
     const frontalWallArea2 = 2 * triangleArea2;
     const wallArea2 = lateralWallArea2 + frontalWallArea2;
     const concreteVolume2 = wallArea2 * ICF_CONCRETE_PER_M2;
@@ -579,7 +581,8 @@ export default function AFrameSimulator() {
     const volume = triangleArea * length;
     
     // Cálculo de área de paredes para ICF
-    const lateralWallArea = 2 * (faceLength * length);
+    // CORREÇÃO: Paredes laterais = altura real × comprimento, não diagonal
+    const lateralWallArea = 2 * (h * length);
     const frontalWallArea = 2 * triangleArea;
     const wallArea = lateralWallArea + frontalWallArea;
     
@@ -1370,7 +1373,8 @@ export default function AFrameSimulator() {
             const totalArea = base * length;
             const triangleArea = (base * h) / 2;
             const volume = triangleArea * length;
-            const lateralWallArea = 2 * (faceLength * length);
+            // CORREÇÃO: Paredes laterais = altura real × comprimento, não diagonal
+            const lateralWallArea = 2 * (h * length);
             const frontalWallArea = 2 * triangleArea;
             const wallArea = lateralWallArea + frontalWallArea;
             const concreteVolume = wallArea * ICF_CONCRETE_PER_M2;
