@@ -1,7 +1,9 @@
 import { useState, useMemo } from 'react';
 import { AlertCircle, CheckCircle, AlertTriangle, Lightbulb } from 'lucide-react';
 import { calculateEPSOptimization, suggestOptimizedDimensions } from '@/lib/epsOptimization';
+import { calculateDetailedBlockBreakdown } from '@/lib/detailedBlockCalculation';
 import { EPSBlockDetailsTooltip } from './EPSBlockDetailsTooltip';
+import { DetailedBlockBreakdownComponent } from './DetailedBlockBreakdown';
 import { EPSSavingsChart } from './EPSSavingsChart';
 
 interface EPSOptimizationWarningProps {
@@ -18,9 +20,14 @@ export function EPSOptimizationWarning({
   onOptimizationSuggested,
 }: EPSOptimizationWarningProps) {
   const [showSavingsChart, setShowSavingsChart] = useState(false);
+  const [showDetailedBreakdown, setShowDetailedBreakdown] = useState(false);
 
   const optimization = useMemo(() => {
     return calculateEPSOptimization(baseWidth, height, length);
+  }, [baseWidth, height, length]);
+
+  const detailedBreakdown = useMemo(() => {
+    return calculateDetailedBlockBreakdown(baseWidth, height, length);
   }, [baseWidth, height, length]);
 
   const suggestedDimensions = useMemo(() => {
@@ -116,6 +123,12 @@ export function EPSOptimizationWarning({
                 >
                   {showSavingsChart ? 'Ocultar' : 'Ver'} Gráfico de Economia
                 </button>
+                <button
+                  onClick={() => setShowDetailedBreakdown(!showDetailedBreakdown)}
+                  className="px-3 py-1 bg-purple-600 text-white text-xs rounded hover:bg-purple-700 transition"
+                >
+                  {showDetailedBreakdown ? 'Ocultar' : 'Ver'} Detalhamento por Parede
+                </button>
               </div>
             </div>
           )}
@@ -152,6 +165,13 @@ export function EPSOptimizationWarning({
               financialSavings={optimization.financialSavings}
               materialSavings={optimization.materialSavings}
             />
+          )}
+
+          {/* Detailed Block Breakdown */}
+          {showDetailedBreakdown && (
+            <div className="mt-4 pt-4 border-t border-gray-300">
+              <DetailedBlockBreakdownComponent breakdown={detailedBreakdown} />
+            </div>
           )}
         </div>
       </div>
