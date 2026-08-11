@@ -30,6 +30,7 @@ interface PDFExportButtonProps {
   laborCost: number;
   totalCost: number;
   obraCinzaCost?: number;
+  obraCinzaCostPerM2?: number;
   finishingProductsCost?: number;
   laborServices: Array<{
     name: string;
@@ -67,6 +68,7 @@ export default function PDFExportButton({
   laborCost,
   totalCost,
   obraCinzaCost,
+  obraCinzaCostPerM2,
   finishingProductsCost,
   laborServices,
 }: PDFExportButtonProps) {
@@ -314,7 +316,7 @@ export default function PDFExportButton({
       pdf.setTextColor(100, 100, 100);
       pdf.text(('Obra cinza — custo por m² de parede:') as any, margin, yPosition);
       pdf.setTextColor(0, 0, 0);
-      const costPerM2 = wallArea > 0 ? (obraCinzaCost ?? totalCost) / wallArea : 0;
+      const costPerM2 = obraCinzaCostPerM2 ?? (wallArea > 0 ? (obraCinzaCost ?? totalCost) / wallArea : 0);
       const costPerM2Text = `R$ ${costPerM2.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
       pdf.text((costPerM2Text || '') as any, margin + 80, yPosition);
       yPosition += 8;

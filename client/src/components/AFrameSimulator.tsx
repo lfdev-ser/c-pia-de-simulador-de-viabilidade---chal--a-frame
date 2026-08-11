@@ -422,7 +422,8 @@ export default function AFrameSimulator() {
     const steelCost1 = data1.steelWeight * prices.steelPerKg;
     const epsFormsNeeded1 = data1.wallArea * ICF_FORMS_PER_M2;
     const epsCost1 = epsFormsNeeded1 * prices.epsPerForm;
-    const finishingProductsCost1 = calculateFinishingCosts(data1.wallArea, prices.finishingProducts).totalCost;
+    const finishingCosts1 = calculateFinishingCosts(data1.wallArea, prices.finishingProducts);
+    const finishingProductsCost1 = finishingCosts1.totalCost;
     const obraCinzaCost1 = concreteCost1 + steelCost1 + epsCost1 + finishingProductsCost1;
     const accessoriesCost1 = data1.wallArea * prices.accessories;
     const iceflexBaldesNeeded1 = Math.ceil(data1.wallArea / ICF_ICEFLEX_M2_PER_PACKAGE);
@@ -450,7 +451,12 @@ export default function AFrameSimulator() {
       icfTotalCost: obraCinzaCost1 + accessoriesCost1 + iceflexCost1 + icfibraCost1,
       obraCinzaCost: obraCinzaCost1,
       finishingProductsCost: finishingProductsCost1,
-      costPerM2: data1.wallArea > 0 ? Math.round((obraCinzaCost1 / data1.wallArea) * 100) / 100 : 0,
+      costPerM2: data1.wallArea > 0
+        ? Math.round((ICF_FORMS_PER_M2 * prices.epsPerForm
+          + ICF_CONCRETE_PER_M2 * prices.concretePerM3
+          + ICF_STEEL_PER_M2 * prices.steelPerKg
+          + finishingCosts1.costPerM2) * 100) / 100
+        : 0,
       costPerM2WithLabor: data1.wallArea > 0 ? Math.round((totalCost1 / data1.wallArea) * 100) / 100 : 0,
       laborCostPerM2: data1.wallArea > 0 ? Math.round((laborCost1 / data1.wallArea) * 100) / 100 : 0,
     };
@@ -496,7 +502,8 @@ export default function AFrameSimulator() {
     const steelCost2 = data2.steelWeight * prices.steelPerKg;
     const epsFormsNeeded2 = data2.wallArea * ICF_FORMS_PER_M2;
     const epsCost2 = epsFormsNeeded2 * prices.epsPerForm;
-    const finishingProductsCost2 = calculateFinishingCosts(data2.wallArea, prices.finishingProducts).totalCost;
+    const finishingCosts2 = calculateFinishingCosts(data2.wallArea, prices.finishingProducts);
+    const finishingProductsCost2 = finishingCosts2.totalCost;
     const obraCinzaCost2 = concreteCost2 + steelCost2 + epsCost2 + finishingProductsCost2;
     const accessoriesCost2 = data2.wallArea * prices.accessories;
     const iceflexBaldesNeeded2 = Math.ceil(data2.wallArea / ICF_ICEFLEX_M2_PER_PACKAGE);
@@ -524,7 +531,12 @@ export default function AFrameSimulator() {
       icfTotalCost: obraCinzaCost2 + accessoriesCost2 + iceflexCost2 + icfibraCost2,
       obraCinzaCost: obraCinzaCost2,
       finishingProductsCost: finishingProductsCost2,
-      costPerM2: data2.wallArea > 0 ? Math.round((obraCinzaCost2 / data2.wallArea) * 100) / 100 : 0,
+      costPerM2: data2.wallArea > 0
+        ? Math.round((ICF_FORMS_PER_M2 * prices.epsPerForm
+          + ICF_CONCRETE_PER_M2 * prices.concretePerM3
+          + ICF_STEEL_PER_M2 * prices.steelPerKg
+          + finishingCosts2.costPerM2) * 100) / 100
+        : 0,
       costPerM2WithLabor: data2.wallArea > 0 ? Math.round((totalCost2 / data2.wallArea) * 100) / 100 : 0,
       laborCostPerM2: data2.wallArea > 0 ? Math.round((laborCost2 / data2.wallArea) * 100) / 100 : 0,
     };
@@ -609,6 +621,16 @@ export default function AFrameSimulator() {
     const epsCost = epsFormsNeeded * prices.epsPerForm;
     const finishingCosts = calculateFinishingCosts(data.wallArea, prices.finishingProducts);
     const finishingProductsCost = finishingCosts.totalCost;
+    const finishingIceflexQuantity = finishingCosts.includedProducts
+      .filter((product) => product.id === 'icflex-externo-verde' || product.id === 'icflex-interno-laranja')
+      .reduce((sum, product) => sum + product.requiredQuantity, 0);
+    const finishingIcfibraQuantity = finishingCosts.includedProducts
+      .filter((product) => product.id === 'icfibra-metro')
+      .reduce((sum, product) => sum + product.requiredQuantity, 0);
+    const obraCinzaCostPerM2 = ICF_FORMS_PER_M2 * prices.epsPerForm
+      + ICF_CONCRETE_PER_M2 * prices.concretePerM3
+      + ICF_STEEL_PER_M2 * prices.steelPerKg
+      + finishingCosts.costPerM2;
     const finishingYieldsPending = prices.finishingProducts
       .filter((product) => product.includeInObraCinza && product.unitsPerM2 <= 0)
       .map((product) => product.name);
@@ -639,7 +661,7 @@ export default function AFrameSimulator() {
     // Custo total incluindo mão de obra, materiais customizáveis e fundação.
     const totalCost = icfTotalCost + laborCost + customMaterialsCost + foundationCost;
     // Indicador correto da obra cinza por m² de parede.
-    const costPerM2ICF = data.wallArea > 0 ? Math.round((obraCinzaCost / data.wallArea) * 100) / 100 : 0;
+    const costPerM2ICF = data.wallArea > 0 ? Math.round(obraCinzaCostPerM2 * 100) / 100 : 0;
     
     // Cálculo do custo por m² de parede com mão de obra (quando preenchida)
     const laborCostPerM2 = data.wallArea > 0 ? Math.round((laborCost / data.wallArea) * 100) / 100 : 0;
@@ -661,8 +683,11 @@ export default function AFrameSimulator() {
       icfibraRolosNeeded,
       icfTotalCost,
       obraCinzaCost,
+      obraCinzaCostPerM2,
       finishingProductsCost,
       finishingProductsSummary: finishingCosts.includedProducts,
+      finishingIceflexQuantity,
+      finishingIcfibraQuantity,
       finishingYieldsPending,
       totalCost,
       costPerM2: costPerM2ICF,
@@ -1126,15 +1151,15 @@ export default function AFrameSimulator() {
                 </div>
 
                 <div className="bg-[#f5f3f0] p-4 rounded-lg">
-                  <p className="text-xs text-[#6b6b6b] mb-1">Iceflex (Revestimento)</p>
-                  <p className="text-2xl font-bold text-[#15803d]">{costs.iceflexBaldesNeeded} baldes</p>
-                  <p className="text-xs text-[#6b6b6b] mt-1">(18 KG cada - 1 embalagem cobre 4 m²)</p>
+                  <p className="text-xs text-[#6b6b6b] mb-1">ICFlex interno + externo</p>
+                  <p className="text-2xl font-bold text-[#15803d]">{costs.finishingIceflexQuantity} embalagens</p>
+                  <p className="text-xs text-[#6b6b6b] mt-1">0,50 embalagem/m² no total — 0,25 por lado</p>
                 </div>
 
                 <div className="bg-[#f5f3f0] p-4 rounded-lg">
-                  <p className="text-xs text-[#6b6b6b] mb-1">ICFibra (Reforço)</p>
-                  <p className="text-2xl font-bold text-[#15803d]">{costs.icfibraRolosNeeded} rolos</p>
-                  <p className="text-xs text-[#6b6b6b] mt-1">(50 m² cada - 1m × 50m)</p>
+                  <p className="text-xs text-[#6b6b6b] mb-1">ICFibra/tela — dois lados</p>
+                  <p className="text-2xl font-bold text-[#15803d]">{costs.finishingIcfibraQuantity} m</p>
+                  <p className="text-xs text-[#6b6b6b] mt-1">2 m/m² no total — 1 m por lado</p>
                 </div>
               </div>
 
@@ -1158,11 +1183,11 @@ export default function AFrameSimulator() {
                   <p className="font-bold text-[#15803d]">R$ {costs.epsCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-[#f5f3f0] rounded-lg">
-                  <p className="text-sm text-[#6b6b6b]">Iceflex (Revestimento)</p>
+                  <p className="text-sm text-[#6b6b6b]">Iceflex legado — compra separada</p>
                   <p className="font-bold text-[#15803d]">R$ {costs.iceflexCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-[#f5f3f0] rounded-lg">
-                  <p className="text-sm text-[#6b6b6b]">Acabamento selecionado</p>
+                  <p className="text-sm text-[#6b6b6b]">ICFlex + ICFibra — obra cinza</p>
                   <p className="font-bold text-[#15803d]">R$ {costs.finishingProductsCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-[#fef3c7] rounded-lg">
@@ -1177,8 +1202,9 @@ export default function AFrameSimulator() {
                 <div className="rounded-lg border border-[#d9ead3] bg-[#f4fbf1] p-3 text-xs text-[#31572c]">
                   <p className="font-semibold">Composição aproximada considerada por m² de parede</p>
                   <p className="mt-1">2 formas EPS de 1,25 × 0,40 m · 78 L de concreto · aproximadamente 5 kg de aço</p>
+                  <p className="mt-1">Custos-base/m²: EPS R$ {(ICF_FORMS_PER_M2 * prices.epsPerForm).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} · concreto R$ {(ICF_CONCRETE_PER_M2 * prices.concretePerM3).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} · aço R$ {(ICF_STEEL_PER_M2 * prices.steelPerKg).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                   {costs.finishingProductsSummary.length > 0 && (
-                    <p className="mt-1">{costs.finishingProductsSummary.map((product) => `${product.name}: ${product.unitsPerM2} ${product.unit}/m²`).join(' · ')}</p>
+                    <p className="mt-1">{costs.finishingProductsSummary.map((product) => `${product.name}: ${product.unitsPerM2} ${product.unit}/m² = R$ ${(product.unitsPerM2 * product.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/m²`).join(' · ')}</p>
                   )}
                 </div>
                 <div className="flex justify-between items-center p-4 bg-gradient-to-r from-[#15803d] to-[#2d5016] rounded-lg">
@@ -1295,6 +1321,7 @@ export default function AFrameSimulator() {
             laborCost={costs.laborCost}
             totalCost={costs.totalCost}
             obraCinzaCost={costs.obraCinzaCost}
+            obraCinzaCostPerM2={costs.obraCinzaCostPerM2}
             finishingProductsCost={costs.finishingProductsCost}
             customMaterialsCost={costs.customMaterialsCost || 0}
             foundationCost={costs.foundationCost || 0}
@@ -1414,7 +1441,8 @@ export default function AFrameSimulator() {
             const concreteCost = data.concreteVolume * prices.concretePerM3;
             const steelCost = data.steelWeight * prices.steelPerKg;
             const epsCost = data.wallArea * ICF_FORMS_PER_M2 * prices.epsPerForm;
-            const finishingProductsCost = calculateFinishingCosts(data.wallArea, prices.finishingProducts).totalCost;
+            const finishingCosts = calculateFinishingCosts(data.wallArea, prices.finishingProducts);
+            const finishingProductsCost = finishingCosts.totalCost;
             const accessoriesCost = data.wallArea * prices.accessories;
             const iceflexBaldesNeeded = Math.ceil(data.wallArea / ICF_ICEFLEX_M2_PER_PACKAGE);
             const iceflexCost = iceflexBaldesNeeded * prices.iceflex;
@@ -1422,7 +1450,12 @@ export default function AFrameSimulator() {
             const icfibraCost = icfibraRolosNeeded * prices.icfibra;
             const obraCinzaCost = concreteCost + steelCost + epsCost + finishingProductsCost;
             const totalCost = obraCinzaCost + accessoriesCost + iceflexCost + icfibraCost;
-            const costPerM2 = data.wallArea > 0 ? Math.round((obraCinzaCost / data.wallArea) * 100) / 100 : 0;
+            const costPerM2 = data.wallArea > 0
+              ? Math.round((ICF_FORMS_PER_M2 * prices.epsPerForm
+                + ICF_CONCRETE_PER_M2 * prices.concretePerM3
+                + ICF_STEEL_PER_M2 * prices.steelPerKg
+                + finishingCosts.costPerM2) * 100) / 100
+              : 0;
             return {
               concreteCost,
               steelCost,

@@ -50,6 +50,7 @@ interface ExpandedPDFExportButtonProps {
   laborCost: number;
   totalCost: number;
   obraCinzaCost?: number;
+  obraCinzaCostPerM2?: number;
   finishingProductsCost?: number;
   customMaterialsCost: number;
   foundationCost: number;
@@ -91,6 +92,7 @@ export default function ExpandedPDFExportButton({
   laborCost,
   totalCost,
   obraCinzaCost,
+  obraCinzaCostPerM2,
   finishingProductsCost,
   customMaterialsCost,
   foundationCost,
@@ -326,14 +328,14 @@ export default function ExpandedPDFExportButton({
       yPosition += 5;
 
       const calculatedObraCinzaCost = obraCinzaCost ?? (concreteCost + steelCost + epsCost + (finishingProductsCost ?? 0));
-      const obraCinzaCostPerM2 = wallArea > 0 ? calculatedObraCinzaCost / wallArea : 0;
+      const calculatedObraCinzaCostPerM2 = obraCinzaCostPerM2 ?? (wallArea > 0 ? calculatedObraCinzaCost / wallArea : 0);
       const budgetData = [
         ['Concreto', `R$ ${concreteCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
         ['Aço', `R$ ${steelCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
         ['EPS', `R$ ${epsCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
         ['Acabamento selecionado', `R$ ${(finishingProductsCost ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
         ['Obra cinza — subtotal', `R$ ${calculatedObraCinzaCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
-        ['Obra cinza — custo por m² de parede', `R$ ${obraCinzaCostPerM2.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
+        ['Obra cinza — custo por m² de parede', `R$ ${calculatedObraCinzaCostPerM2.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
         ['Iceflex legado', `R$ ${iceflexCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
         ['ICFibra (Reforço)', `R$ ${icfibraCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
         ['Fundação', `R$ ${foundationCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
