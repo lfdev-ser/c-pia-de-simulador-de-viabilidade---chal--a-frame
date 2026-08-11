@@ -49,6 +49,8 @@ interface ExpandedPDFExportButtonProps {
   icfibraCost: number;
   laborCost: number;
   totalCost: number;
+  obraCinzaCost?: number;
+  finishingProductsCost?: number;
   customMaterialsCost: number;
   foundationCost: number;
   laborServices: Array<{
@@ -88,6 +90,8 @@ export default function ExpandedPDFExportButton({
   icfibraCost,
   laborCost,
   totalCost,
+  obraCinzaCost,
+  finishingProductsCost,
   customMaterialsCost,
   foundationCost,
   laborServices,
@@ -324,8 +328,10 @@ export default function ExpandedPDFExportButton({
       const budgetData = [
         ['Concreto', `R$ ${concreteCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
         ['Aço', `R$ ${steelCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
-        ['EPS + Acessórios', `R$ ${epsCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
-        ['Iceflex (Revestimento)', `R$ ${iceflexCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
+        ['EPS', `R$ ${epsCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
+        ['Acabamento selecionado', `R$ ${(finishingProductsCost ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
+        ['Obra cinza — subtotal', `R$ ${(obraCinzaCost ?? (concreteCost + steelCost + epsCost + (finishingProductsCost ?? 0))).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
+        ['Iceflex legado', `R$ ${iceflexCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
         ['ICFibra (Reforço)', `R$ ${icfibraCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
         ['Fundação', `R$ ${foundationCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
         ['Materiais Customizados', `R$ ${customMaterialsCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`],
@@ -348,7 +354,7 @@ export default function ExpandedPDFExportButton({
       pdf.setTextColor(0, 0, 0);
       pdf.text(('Total de Materiais') as any, margin + 5, yPosition + 2);
       pdf.text((
-        `R$ ${(concreteCost + steelCost + epsCost + iceflexCost + icfibraCost + foundationCost + customMaterialsCost).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+        `R$ ${(concreteCost + steelCost + epsCost + (finishingProductsCost ?? 0) + accessoriesCost + iceflexCost + icfibraCost + foundationCost + customMaterialsCost).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
       ) as any, margin + 80, yPosition + 2);
       yPosition += 10;
 
