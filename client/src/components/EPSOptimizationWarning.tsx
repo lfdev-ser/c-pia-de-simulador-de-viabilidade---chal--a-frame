@@ -139,7 +139,7 @@ export function EPSOptimizationWarning({
             <ul className="list-disc list-inside space-y-1 mb-2">
               <li>Blocos EPS padrão: 1.25m × 0.40m</li>
               <li>Cada 2 formas = 1m² de parede</li>
-              <li>72 litros de concreto por m² de parede</li>
+              <li>78 litros de concreto por m² de parede</li>
               <li>~5 kg de aço por m² de parede</li>
               <li>Otimização reduz recortes e desperdício</li>
             </ul>

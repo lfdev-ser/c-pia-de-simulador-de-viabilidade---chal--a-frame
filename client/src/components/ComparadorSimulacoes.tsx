@@ -8,6 +8,7 @@ import { PDFCustomizationModal } from './PDFCustomizationModal';
 import { PDFShareButton } from './PDFShareButton';
 import { calculateEPSOptimization } from '@/lib/epsOptimization';
 import { toast } from 'sonner';
+import { ICF_ICEFLEX_M2_PER_PACKAGE } from '@/lib/wallCostConstants';
 import { useState, useMemo } from 'react';
 
 interface SavedSimulation {
@@ -408,7 +409,7 @@ export default function ComparadorSimulacoes({
                   wallArea: data1.wallArea,
                   totalCost: costs1.totalCost,
                   costPerM2: costs1.costPerM2,
-                  iceflex: Math.ceil(data1.wallArea / 7),
+                  iceflex: Math.ceil(data1.wallArea / ICF_ICEFLEX_M2_PER_PACKAGE),
                   icfibra: Math.ceil(data1.wallArea / 50),
                   epsOptimization: {
                     wastePercentage: epsOpt1.wastePercentage,
@@ -434,7 +435,7 @@ export default function ComparadorSimulacoes({
                   wallArea: data2.wallArea,
                   totalCost: costs2.totalCost,
                   costPerM2: costs2.costPerM2,
-                  iceflex: Math.ceil(data2.wallArea / 7),
+                  iceflex: Math.ceil(data2.wallArea / ICF_ICEFLEX_M2_PER_PACKAGE),
                   icfibra: Math.ceil(data2.wallArea / 50),
                   epsOptimization: {
                     wastePercentage: epsOpt2.wastePercentage,

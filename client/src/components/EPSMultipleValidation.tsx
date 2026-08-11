@@ -193,7 +193,7 @@ export function EPSMultipleValidation({
             <ul className="list-disc list-inside space-y-1">
             <li>Blocos EPS padrão: {EPS_BLOCK_LENGTH}m × {EPS_BLOCK_HEIGHT}m (CORRIGIDO)</li>
             <li>Cada 2 formas = 1m² de parede</li>
-            <li>72 litros de concreto por m² de parede</li>
+            <li>78 litros de concreto por m² de parede</li>
             <li>~5 kg de aço por m² de parede</li>
             <li>Múltiplos perfeitos eliminam recortes</li>
             <li>Reduz desperdício e custos de material</li>

@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { generateTechnicalReport } from './technicalReport';
+import { ICF_ICEFLEX_M2_PER_PACKAGE } from './wallCostConstants';
 
 interface EPSOptimizationInfo {
   wastePercentage: number;
@@ -444,7 +445,7 @@ export function exportComparisonToPDF(data: ComparisonData, customization?: Cust
     bestSim.volume,
     bestSim.concreteVolume,
     bestSim.steelWeight,
-    Math.ceil(bestSim.wallArea / 7),
+    Math.ceil(bestSim.wallArea / ICF_ICEFLEX_M2_PER_PACKAGE),
     Math.ceil(bestSim.wallArea / 50),
     bestSim.totalCost,
     bestSim.costPerM2

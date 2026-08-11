@@ -71,7 +71,7 @@ export default function PriceConfigModal({ prices, onPricesChange }: PriceConfig
               <div className="space-y-2">
                 <Label htmlFor="concrete">Concreto (R$/m³)</Label>
                 <Input id="concrete" type="number" step="0.001" value={localPrices.concretePerM3} onChange={(event) => handleInputChange('concretePerM3', event.target.value)} />
-                <p className="text-xs text-muted-foreground">Consumo fixo: 72 litros/m².</p>
+                <p className="text-xs text-muted-foreground">Consumo fixo: 78 litros/m².</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="steel">Aço (R$/kg)</Label>
@@ -89,7 +89,7 @@ export default function PriceConfigModal({ prices, onPricesChange }: PriceConfig
               <div className="flex gap-2">
                 <Info className="mt-0.5 h-4 w-4 flex-shrink-0" />
                 <p>
-                  A obra cinza considera somente EPS, concreto, aço e os produtos marcados como acabamento. Como os rendimentos reais podem variar, os campos <strong>un./m²</strong> começam com uma referência aproximada: 1 un./m² para cada lado do ICFlex e 2 m/m² de ICFibra/tela nos dois lados. Ajuste-os conforme a ficha técnica ou medição da obra.
+                  A obra cinza considera somente EPS, concreto, aço e os produtos marcados como acabamento. Como os rendimentos reais podem variar, os campos <strong>un./m²</strong> começam com uma referência aproximada: 0,25 embalagem/m² para cada lado do ICFlex (1 embalagem/4 m²) e 2 m/m² de ICFibra/tela nos dois lados. Ajuste-os conforme a ficha técnica ou medição da obra.
                 </p>
               </div>
             </section>

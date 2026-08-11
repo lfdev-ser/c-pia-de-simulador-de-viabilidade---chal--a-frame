@@ -30,10 +30,11 @@ export const DEFAULT_FINISHING_PRODUCTS: FinishingProductPrice[] = [
     unit: 'un',
     unitPrice: 102,
     referenceQuantity: 31,
-    // Referência aproximada: 1 unidade por m² no lado externo; editável no configurador.
-    unitsPerM2: 1,
+    // Referência confirmada: 1 embalagem cobre 4 m² no lado externo, ou 0,25 embalagem/m².
+    unitsPerM2: 0.25,
     side: 'external',
     includeInObraCinza: true,
+    priceNote: '1 embalagem cobre 4 m² de parede externa.',
   },
   {
     id: 'icflex-interno-laranja',
@@ -41,10 +42,11 @@ export const DEFAULT_FINISHING_PRODUCTS: FinishingProductPrice[] = [
     unit: 'un',
     unitPrice: 102,
     referenceQuantity: 28,
-    // Referência aproximada: 1 unidade por m² no lado interno; editável no configurador.
-    unitsPerM2: 1,
+    // Referência confirmada: 1 embalagem cobre 4 m² no lado interno, ou 0,25 embalagem/m².
+    unitsPerM2: 0.25,
     side: 'internal',
     includeInObraCinza: true,
+    priceNote: '1 embalagem cobre 4 m² de parede interna.',
   },
   {
     id: 'icfibra-metro',
@@ -132,7 +134,7 @@ export const DEFAULT_FINISHING_PRODUCTS: FinishingProductPrice[] = [
 ];
 
 export const DEFAULT_MATERIAL_PRICES: MaterialPrices = {
-  pricingModelVersion: 2,
+  pricingModelVersion: 3,
   concretePerM3: 500,
   steelPerKg: 6,
   epsPerForm: 75.7,
@@ -144,17 +146,30 @@ export const DEFAULT_MATERIAL_PRICES: MaterialPrices = {
 
 export function mergeMaterialPrices(value: Partial<MaterialPrices> | null | undefined): MaterialPrices {
   const hasCurrentPricingModel = value?.pricingModelVersion === DEFAULT_MATERIAL_PRICES.pricingModelVersion;
-  const parsedProducts = hasCurrentPricingModel && Array.isArray(value?.finishingProducts) ? value.finishingProducts : [];
+  const hasPreviousPricingModel = value?.pricingModelVersion === 2;
+  const parsedProducts = (hasCurrentPricingModel || hasPreviousPricingModel) && Array.isArray(value?.finishingProducts)
+    ? value.finishingProducts
+    : [];
   const productsById = new Map(parsedProducts.map((product) => [product.id, product]));
 
   return {
     ...DEFAULT_MATERIAL_PRICES,
     ...value,
     pricingModelVersion: DEFAULT_MATERIAL_PRICES.pricingModelVersion,
-    finishingProducts: DEFAULT_FINISHING_PRODUCTS.map((defaultProduct) => ({
-      ...defaultProduct,
-      ...(productsById.get(defaultProduct.id) ?? {}),
-    })),
+    finishingProducts: DEFAULT_FINISHING_PRODUCTS.map((defaultProduct) => {
+      const savedProduct = productsById.get(defaultProduct.id);
+      const migratedYield = hasPreviousPricingModel && (
+        defaultProduct.id === 'icflex-externo-verde' || defaultProduct.id === 'icflex-interno-laranja'
+      )
+        ? { unitsPerM2: defaultProduct.unitsPerM2 }
+        : {};
+
+      return {
+        ...defaultProduct,
+        ...(savedProduct ?? {}),
+        ...migratedYield,
+      };
+    }),
   };
 }
 

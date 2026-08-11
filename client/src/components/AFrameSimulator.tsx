@@ -31,7 +31,7 @@ import {
   calculateFinishingCosts,
   mergeMaterialPrices,
 } from '@/lib/materialPrices';
-import { ICF_CONCRETE_PER_M2, ICF_FORMS_PER_M2, ICF_STEEL_PER_M2 } from '@/lib/wallCostConstants';
+import { ICF_CONCRETE_PER_M2, ICF_FORMS_PER_M2, ICF_ICEFLEX_M2_PER_PACKAGE, ICF_STEEL_PER_M2 } from '@/lib/wallCostConstants';
 
 interface SimulatorData {
   base: number;
@@ -425,7 +425,7 @@ export default function AFrameSimulator() {
     const finishingProductsCost1 = calculateFinishingCosts(data1.wallArea, prices.finishingProducts).totalCost;
     const obraCinzaCost1 = concreteCost1 + steelCost1 + epsCost1 + finishingProductsCost1;
     const accessoriesCost1 = data1.wallArea * prices.accessories;
-    const iceflexBaldesNeeded1 = Math.ceil(data1.wallArea / 7);
+    const iceflexBaldesNeeded1 = Math.ceil(data1.wallArea / ICF_ICEFLEX_M2_PER_PACKAGE);
     const iceflexCost1 = iceflexBaldesNeeded1 * prices.iceflex;
     const icfibraRolosNeeded1 = Math.ceil(data1.wallArea / 50);
     const icfibraCost1 = icfibraRolosNeeded1 * prices.icfibra;
@@ -499,7 +499,7 @@ export default function AFrameSimulator() {
     const finishingProductsCost2 = calculateFinishingCosts(data2.wallArea, prices.finishingProducts).totalCost;
     const obraCinzaCost2 = concreteCost2 + steelCost2 + epsCost2 + finishingProductsCost2;
     const accessoriesCost2 = data2.wallArea * prices.accessories;
-    const iceflexBaldesNeeded2 = Math.ceil(data2.wallArea / 7);
+    const iceflexBaldesNeeded2 = Math.ceil(data2.wallArea / ICF_ICEFLEX_M2_PER_PACKAGE);
     const iceflexCost2 = iceflexBaldesNeeded2 * prices.iceflex;
     const icfibraRolosNeeded2 = Math.ceil(data2.wallArea / 50);
     const icfibraCost2 = icfibraRolosNeeded2 * prices.icfibra;
@@ -614,8 +614,8 @@ export default function AFrameSimulator() {
       .map((product) => product.name);
     const accessoriesCost = data.wallArea * prices.accessories;
     
-    // Iceflex: rendimento ~7 m² por balde (18 KG)
-    const iceflexBaldesNeeded = Math.ceil(data.wallArea / 7);
+    // Iceflex: rendimento de 4 m² por embalagem (18 KG)
+    const iceflexBaldesNeeded = Math.ceil(data.wallArea / ICF_ICEFLEX_M2_PER_PACKAGE);
     const iceflexCost = iceflexBaldesNeeded * prices.iceflex;
     
     // ICFibra: 1 rolo cobre 50 m²
@@ -1128,7 +1128,7 @@ export default function AFrameSimulator() {
                 <div className="bg-[#f5f3f0] p-4 rounded-lg">
                   <p className="text-xs text-[#6b6b6b] mb-1">Iceflex (Revestimento)</p>
                   <p className="text-2xl font-bold text-[#15803d]">{costs.iceflexBaldesNeeded} baldes</p>
-                  <p className="text-xs text-[#6b6b6b] mt-1">(18 KG cada - ~7 m² por balde)</p>
+                  <p className="text-xs text-[#6b6b6b] mt-1">(18 KG cada - 1 embalagem cobre 4 m²)</p>
                 </div>
 
                 <div className="bg-[#f5f3f0] p-4 rounded-lg">
@@ -1176,7 +1176,7 @@ export default function AFrameSimulator() {
                 )}
                 <div className="rounded-lg border border-[#d9ead3] bg-[#f4fbf1] p-3 text-xs text-[#31572c]">
                   <p className="font-semibold">Composição aproximada considerada por m² de parede</p>
-                  <p className="mt-1">2 formas EPS de 1,25 × 0,40 m · 72 L de concreto · aproximadamente 5 kg de aço</p>
+                  <p className="mt-1">2 formas EPS de 1,25 × 0,40 m · 78 L de concreto · aproximadamente 5 kg de aço</p>
                   {costs.finishingProductsSummary.length > 0 && (
                     <p className="mt-1">{costs.finishingProductsSummary.map((product) => `${product.name}: ${product.unitsPerM2} ${product.unit}/m²`).join(' · ')}</p>
                   )}
@@ -1284,7 +1284,7 @@ export default function AFrameSimulator() {
             steelWeight={data.steelWeight}
             epsVolume={data.epsVolume}
             epsWeight={data.epsWeight}
-            iceflexQuantity={Math.ceil(data.wallArea / 7)}
+            iceflexQuantity={Math.ceil(data.wallArea / ICF_ICEFLEX_M2_PER_PACKAGE)}
             icfibraQuantity={Math.ceil(data.wallArea / 50)}
             concreteCost={costs.concreteCost}
             steelCost={costs.steelCost}
@@ -1416,7 +1416,7 @@ export default function AFrameSimulator() {
             const epsCost = data.wallArea * ICF_FORMS_PER_M2 * prices.epsPerForm;
             const finishingProductsCost = calculateFinishingCosts(data.wallArea, prices.finishingProducts).totalCost;
             const accessoriesCost = data.wallArea * prices.accessories;
-            const iceflexBaldesNeeded = Math.ceil(data.wallArea / 7);
+            const iceflexBaldesNeeded = Math.ceil(data.wallArea / ICF_ICEFLEX_M2_PER_PACKAGE);
             const iceflexCost = iceflexBaldesNeeded * prices.iceflex;
             const icfibraRolosNeeded = Math.ceil(data.wallArea / 50);
             const icfibraCost = icfibraRolosNeeded * prices.icfibra;
