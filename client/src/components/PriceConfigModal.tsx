@@ -89,7 +89,7 @@ export default function PriceConfigModal({ prices, onPricesChange }: PriceConfig
               <div className="flex gap-2">
                 <Info className="mt-0.5 h-4 w-4 flex-shrink-0" />
                 <p>
-                  A obra cinza considera somente EPS, concreto, aço e os produtos marcados como acabamento. Como os rendimentos dos produtos não foram informados, os campos <strong>un./m²</strong> começam em zero e precisam ser preenchidos conforme a ficha técnica ou medição da obra.
+                  A obra cinza considera somente EPS, concreto, aço e os produtos marcados como acabamento. Como os rendimentos reais podem variar, os campos <strong>un./m²</strong> começam com uma referência aproximada: 1 un./m² para cada lado do ICFlex e 2 m/m² de ICFibra/tela nos dois lados. Ajuste-os conforme a ficha técnica ou medição da obra.
                 </p>
               </div>
             </section>

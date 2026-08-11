@@ -1174,6 +1174,13 @@ export default function AFrameSimulator() {
                     Informe o consumo em un./m² na configuração de preços para incluir no indicador: {costs.finishingYieldsPending.join(', ')}.
                   </p>
                 )}
+                <div className="rounded-lg border border-[#d9ead3] bg-[#f4fbf1] p-3 text-xs text-[#31572c]">
+                  <p className="font-semibold">Composição aproximada considerada por m² de parede</p>
+                  <p className="mt-1">2 formas EPS de 1,25 × 0,40 m · 72 L de concreto · aproximadamente 5 kg de aço</p>
+                  {costs.finishingProductsSummary.length > 0 && (
+                    <p className="mt-1">{costs.finishingProductsSummary.map((product) => `${product.name}: ${product.unitsPerM2} ${product.unit}/m²`).join(' · ')}</p>
+                  )}
+                </div>
                 <div className="flex justify-between items-center p-4 bg-gradient-to-r from-[#15803d] to-[#2d5016] rounded-lg">
                   <p className="font-bold text-white">Total de Materiais</p>
                   <p className="text-2xl font-bold text-white">R$ {costs.totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>

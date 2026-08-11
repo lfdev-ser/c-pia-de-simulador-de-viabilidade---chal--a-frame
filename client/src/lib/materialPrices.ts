@@ -13,6 +13,7 @@ export interface FinishingProductPrice {
 }
 
 export interface MaterialPrices {
+  pricingModelVersion: number;
   concretePerM3: number;
   steelPerKg: number;
   epsPerForm: number;
@@ -29,7 +30,8 @@ export const DEFAULT_FINISHING_PRODUCTS: FinishingProductPrice[] = [
     unit: 'un',
     unitPrice: 102,
     referenceQuantity: 31,
-    unitsPerM2: 0,
+    // Referência aproximada: 1 unidade por m² no lado externo; editável no configurador.
+    unitsPerM2: 1,
     side: 'external',
     includeInObraCinza: true,
   },
@@ -39,7 +41,8 @@ export const DEFAULT_FINISHING_PRODUCTS: FinishingProductPrice[] = [
     unit: 'un',
     unitPrice: 102,
     referenceQuantity: 28,
-    unitsPerM2: 0,
+    // Referência aproximada: 1 unidade por m² no lado interno; editável no configurador.
+    unitsPerM2: 1,
     side: 'internal',
     includeInObraCinza: true,
   },
@@ -49,10 +52,11 @@ export const DEFAULT_FINISHING_PRODUCTS: FinishingProductPrice[] = [
     unit: 'm',
     unitPrice: 6.603,
     referenceQuantity: 300,
-    unitsPerM2: 0,
+    // Referência aproximada: 1 metro por m² em cada lado, total de 2 m/m².
+    unitsPerM2: 2,
     side: 'support',
-    includeInObraCinza: false,
-    priceNote: 'Valor informado já considera acréscimo de 6,50%.',
+    includeInObraCinza: true,
+    priceNote: 'Valor informado já considera acréscimo de 6,50%. Referência: 1 m/m² por lado, 2 m/m² no total.',
   },
   {
     id: 'icflex-datec',
@@ -128,6 +132,7 @@ export const DEFAULT_FINISHING_PRODUCTS: FinishingProductPrice[] = [
 ];
 
 export const DEFAULT_MATERIAL_PRICES: MaterialPrices = {
+  pricingModelVersion: 2,
   concretePerM3: 500,
   steelPerKg: 6,
   epsPerForm: 75.7,
@@ -138,12 +143,14 @@ export const DEFAULT_MATERIAL_PRICES: MaterialPrices = {
 };
 
 export function mergeMaterialPrices(value: Partial<MaterialPrices> | null | undefined): MaterialPrices {
-  const parsedProducts = Array.isArray(value?.finishingProducts) ? value.finishingProducts : [];
+  const hasCurrentPricingModel = value?.pricingModelVersion === DEFAULT_MATERIAL_PRICES.pricingModelVersion;
+  const parsedProducts = hasCurrentPricingModel && Array.isArray(value?.finishingProducts) ? value.finishingProducts : [];
   const productsById = new Map(parsedProducts.map((product) => [product.id, product]));
 
   return {
     ...DEFAULT_MATERIAL_PRICES,
     ...value,
+    pricingModelVersion: DEFAULT_MATERIAL_PRICES.pricingModelVersion,
     finishingProducts: DEFAULT_FINISHING_PRODUCTS.map((defaultProduct) => ({
       ...defaultProduct,
       ...(productsById.get(defaultProduct.id) ?? {}),
