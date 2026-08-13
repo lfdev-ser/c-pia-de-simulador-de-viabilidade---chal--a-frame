@@ -1,9 +1,11 @@
-# Tarefas — Correção do custo da obra cinza por m²
+# Tarefas — Landing Page com Cadastro, Login e Confirmação de E-mail
 
-- [x] Auditar a fórmula que produz o valor exibido de R$ 285,53/m².
-- [x] Confirmar uma única composição por m²: 2 formas EPS, 78 L de concreto, aproximadamente 5 kg de aço, ICFlex interno, ICFlex externo e ICFibra/tela nos dois lados.
-- [x] Remover qualquer componente duplicado ou custo legado indevido do indicador de obra cinza.
-- [x] Aplicar a mesma composição ao simulador, comparador e PDFs.
-- [x] Exibir o detalhamento dos componentes e rendimentos usados no cálculo.
-- [x] Validar o resultado com os preços atualmente configurados.
-- [x] Salvar checkpoint final.
+- [x] Avaliar a arquitetura atual do projeto estático e os requisitos de autenticação.
+- [x] Executar o upgrade para projeto full-stack (`web-db-user`) com banco de dados e gerenciamento de usuários.
+- [x] Criar as tabelas de usuários e tokens de confirmação de e-mail no banco de dados.
+- [x] Implementar rotas de backend para registro, login, logout, reenvio e confirmação de e-mail.
+- [x] Desenvolver a landing page pública de apresentação do simulador de chalés A-frame com CTAs de acesso.
+- [x] Criar os modais ou páginas dedicadas de Cadastro, Login, Esqueceu a Senha e Tela de Espera por Confirmação de E-mail.
+- [x] Proteger o simulador de viabilidade para exigir conta ativa e e-mail confirmado.
+- [x] Validar o fluxo end-to-end de registro, envio de link de confirmação, ativação e acesso.
+- [x] Salvar checkpoint de produção e documentar o funcionamento do sistema de e-mails.
