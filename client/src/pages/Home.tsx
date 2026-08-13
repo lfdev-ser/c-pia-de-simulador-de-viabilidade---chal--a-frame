@@ -3,6 +3,7 @@ import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import AFrameSimulator from '@/components/AFrameSimulator';
 import AFrameLogo from '@/components/AFrameLogo';
+import { AdminPanel } from '@/components/AdminPanel';
 import { getPasswordInputType } from '@/lib/passwordVisibility';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,6 +45,7 @@ export default function Home() {
   });
 
   const [debugVerificationToken, setDebugVerificationToken] = useState<string | null>(null);
+  const [adminPanelOpen, setAdminPanelOpen] = useState(false);
 
   const registerMutation = trpc.authEmail.register.useMutation({
     onSuccess: (data: any) => {
@@ -94,14 +96,29 @@ export default function Home() {
             <AFrameLogo className="w-8 h-8 shrink-0" />
             <span className="font-bold text-lg text-[#2d2d2d]">Simulador Chalé A-frame ICF</span>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">Olá, <b>{user.name || user.email}</b></span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-600 hidden md:inline">Olá, <b>{user.name || user.email}</b></span>
+            {user.role === 'admin' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setAdminPanelOpen(true)}
+                className="gap-2 border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100 font-semibold"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span className="hidden sm:inline">Painel Admin</span>
+                <span className="sm:hidden">Admin</span>
+              </Button>
+            )}
             <Button variant="outline" size="sm" onClick={() => logout()} className="gap-2">
               <LogOut className="w-4 h-4" /> Sair
             </Button>
           </div>
         </div>
         <AFrameSimulator />
+        {user.role === 'admin' && (
+          <AdminPanel open={adminPanelOpen} onOpenChange={setAdminPanelOpen} />
+        )}
       </div>
     );
   }
