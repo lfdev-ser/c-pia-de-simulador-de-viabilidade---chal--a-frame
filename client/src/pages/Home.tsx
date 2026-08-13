@@ -147,14 +147,10 @@ export default function Home() {
                   Já tenho uma conta
                 </Button>
               </div>
-              <div className="grid grid-cols-3 pt-6 border-t border-gray-200 gap-4 text-center">
+              <div className="grid grid-cols-2 pt-6 border-t border-gray-200 gap-4 text-center">
                 <div>
                   <p className="text-2xl font-black text-[#15803d]">100%</p>
                   <p className="text-xs text-gray-500 font-medium">Conformidade EPS</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-black text-[#15803d]">78L/m²</p>
-                  <p className="text-xs text-gray-500 font-medium">Concreto Interno</p>
                 </div>
                 <div>
                   <p className="text-2xl font-black text-[#15803d]">PDF</p>
