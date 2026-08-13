@@ -3,7 +3,7 @@ import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import AFrameSimulator from '@/components/AFrameSimulator';
 import AFrameLogo from '@/components/AFrameLogo';
-import { AdminPanel } from '@/components/AdminPanel';
+import { AdminDashboardPage } from '@/components/AdminDashboardPage';
 import { getPasswordInputType } from '@/lib/passwordVisibility';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,7 +45,7 @@ export default function Home() {
   });
 
   const [debugVerificationToken, setDebugVerificationToken] = useState<string | null>(null);
-  const [adminPanelOpen, setAdminPanelOpen] = useState(false);
+  const [currentView, setCurrentView] = useState<'simulator' | 'admin'>('simulator');
 
   const registerMutation = trpc.authEmail.register.useMutation({
     onSuccess: (data: any) => {
@@ -87,8 +87,17 @@ export default function Home() {
     }
   });
 
-  // Se o usuário já estiver logado e com e-mail confirmado, exibe o simulador diretamente
+  // Se o usuário já estiver logado e com e-mail confirmado, exibe o simulador ou o painel admin amplo
   if (user && user.emailVerified === 1) {
+    if (user.role === 'admin' && currentView === 'admin') {
+      return (
+        <AdminDashboardPage 
+          onBackToSimulator={() => setCurrentView('simulator')} 
+          currentUser={user} 
+        />
+      );
+    }
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#faf8f3] via-[#f5f3f0] to-[#faf8f3]">
         <div className="bg-white border-b border-[#e8e6e1] px-6 py-3 flex justify-between items-center shadow-xs">
@@ -102,8 +111,8 @@ export default function Home() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setAdminPanelOpen(true)}
-                className="gap-2 border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100 font-semibold"
+                onClick={() => setCurrentView('admin')}
+                className="gap-2 border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100 font-semibold shadow-xs"
               >
                 <ShieldCheck className="w-4 h-4" />
                 <span className="hidden sm:inline">Painel Admin</span>
@@ -116,9 +125,6 @@ export default function Home() {
           </div>
         </div>
         <AFrameSimulator />
-        {user.role === 'admin' && (
-          <AdminPanel open={adminPanelOpen} onOpenChange={setAdminPanelOpen} />
-        )}
       </div>
     );
   }

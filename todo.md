@@ -64,4 +64,5 @@
 - [x] Listar usuários cadastrados e promover a conta ativa para administrador.
 - [x] Validar e refinar o componente `AdminPanel.tsx` para garantir exclusão, alteração de cargo e estatísticas gerais.
 - [x] Exibir e integrar explicitamente o botão “Painel Admin” no cabeçalho da tela autenticada.
+- [x] Transformar o modal administrativo em uma página ampla dedicada com layout de painel e navegação completa.
 
