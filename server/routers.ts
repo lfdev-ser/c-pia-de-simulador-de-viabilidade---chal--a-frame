@@ -1,7 +1,7 @@
-import { COOKIE_NAME } from "@shared/const";
+import { COOKIE_NAME, NOT_ADMIN_ERR_MSG } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { adminProcedure, protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import {
   clearUserComparisons,
@@ -10,16 +10,21 @@ import {
   deleteUserComparison,
   deleteUserSimulation,
   getDb,
+  getUserByEmail,
   getUserSettings,
+  listAllUsers,
   listUserComparisons,
   listUserMaterialPrices,
   listUserSimulations,
   replaceUserMaterialPrices,
+  updateUserRole,
   upsertUserSettings,
 } from "./db";
 import { users } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import crypto from "crypto";
+import { hashPassword, verifyPassword } from "./authUtils";
+import { TRPCError } from "@trpc/server";
 
 const jsonObject = z.record(z.string(), z.unknown());
 
@@ -55,19 +60,19 @@ export const appRouter = router({
 
         const existing = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
         const verificationToken = crypto.randomBytes(32).toString('hex');
+        const hashedPassword = await hashPassword(input.password);
 
         if (existing.length > 0) {
           const user = existing[0];
           if (user.emailVerified === 1) throw new Error("Este e-mail já está cadastrado e confirmado.");
           await db.update(users).set({
             name: input.name,
-            passwordHash: input.password,
+            passwordHash: hashedPassword,
             verificationToken,
           }).where(eq(users.id, user.id));
           return {
             success: true,
             message: "Cadastro atualizado! Verifique seu e-mail para confirmar a conta.",
-            verificationToken,
           };
         }
 
@@ -75,7 +80,7 @@ export const appRouter = router({
           openId: `email_${crypto.randomBytes(8).toString('hex')}`,
           name: input.name,
           email: input.email,
-          passwordHash: input.password,
+          passwordHash: hashedPassword,
           emailVerified: 0,
           verificationToken,
           role: 'user',
@@ -84,7 +89,6 @@ export const appRouter = router({
         return {
           success: true,
           message: "Cadastro realizado com sucesso! Enviamos um link de confirmação para o seu e-mail.",
-          verificationToken,
         };
       }),
 
@@ -95,11 +99,16 @@ export const appRouter = router({
         if (!db) throw new Error("Banco de dados indisponível");
 
         const found = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
-        if (found.length === 0 || found[0].passwordHash !== input.password) {
+        if (found.length === 0) {
           throw new Error("E-mail ou senha incorretos.");
         }
 
         const user = found[0];
+        const isValid = await verifyPassword(input.password, user.passwordHash || '');
+        if (!isValid) {
+          throw new Error("E-mail ou senha incorretos.");
+        }
+
         const cookieOptions = getSessionCookieOptions(ctx.req);
         ctx.res.cookie('userId', user.id.toString(), {
           ...cookieOptions,
@@ -133,7 +142,66 @@ export const appRouter = router({
         if (found.length === 0) throw new Error("E-mail não encontrado.");
         const verificationToken = crypto.randomBytes(32).toString('hex');
         await db.update(users).set({ verificationToken }).where(eq(users.id, found[0].id));
-        return { success: true, message: "Novo link de confirmação enviado para o seu e-mail.", verificationToken };
+        return { success: true, message: "Novo link de confirmação enviado para o seu e-mail." };
+      }),
+
+    forgotPassword: publicProcedure
+      .input(z.object({ email: z.string().email() }))
+      .mutation(async ({ input }) => {
+        const user = await getUserByEmail(input.email);
+        if (!user) {
+          // Por segurança, retorna sucesso genérico para não expor cadastros
+          return { success: true, message: "Se o e-mail estiver cadastrado, enviaremos instruções de redefinição." };
+        }
+        const db = await getDb();
+        if (!db) throw new Error("Banco de dados indisponível");
+
+        const resetPasswordToken = crypto.randomBytes(32).toString('hex');
+        const resetPasswordExpires = new Date(Date.now() + 3600 * 1000); // 1 hora
+        await db.update(users).set({ resetPasswordToken, resetPasswordExpires }).where(eq(users.id, user.id));
+
+        return {
+          success: true,
+          message: "Instruções de redefinição enviadas para o seu e-mail.",
+          resetPasswordToken, // Em produção vai por e-mail transacional
+        };
+      }),
+
+    resetPassword: publicProcedure
+      .input(z.object({ token: z.string(), newPassword: z.string().min(6) }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("Banco de dados indisponível");
+
+        const found = await db.select().from(users).where(eq(users.resetPasswordToken, input.token)).limit(1);
+        if (found.length === 0) {
+          throw new Error("Token de redefinição inválido ou expirado.");
+        }
+        const user = found[0];
+        if (user.resetPasswordExpires && new Date() > new Date(user.resetPasswordExpires)) {
+          throw new Error("Token de redefinição expirado.");
+        }
+
+        const passwordHash = await hashPassword(input.newPassword);
+        await db.update(users).set({
+          passwordHash,
+          resetPasswordToken: null,
+          resetPasswordExpires: null,
+        }).where(eq(users.id, user.id));
+
+        return { success: true, message: "Senha redefinida com sucesso! Faça login com a nova senha." };
+      }),
+  }),
+
+  admin: router({
+    listUsers: adminProcedure.query(async () => {
+      return await listAllUsers();
+    }),
+    updateRole: adminProcedure
+      .input(z.object({ userId: z.number().int().positive(), role: z.enum(['user', 'admin']) }))
+      .mutation(async ({ input }) => {
+        await updateUserRole(input.userId, input.role);
+        return { success: true } as const;
       }),
   }),
 
@@ -146,7 +214,7 @@ export const appRouter = router({
           try {
             data = JSON.parse(row.data) as Record<string, unknown>;
           } catch {
-            // Mantém uma estrutura vazia para registros antigos corrompidos.
+            // Mantém vazio
           }
           return { id: row.id, title: row.title, data, createdAt: row.createdAt, updatedAt: row.updatedAt };
         });

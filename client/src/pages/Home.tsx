@@ -368,21 +368,11 @@ export default function Home() {
             </div>
 
             <div className="p-4 bg-white rounded-xl border border-amber-200 text-xs text-amber-900 text-left space-y-1">
-              <p className="font-semibold">Simulação de Ambiente Sandbox:</p>
-              <p>Como o servidor local simula o envio de e-mails, clique no botão abaixo para simular a confirmação instantânea ou reenviar o token.</p>
+              <p className="font-semibold">Aviso de Produção:</p>
+              <p>O link de ativação foi enviado para sua caixa de entrada. Verifique seu e-mail para ativar a conta antes de fazer o login.</p>
             </div>
 
             <div className="space-y-3">
-              <Button 
-                onClick={() => {
-                  // Simular clique direto no link de confirmação para facilidade no sandbox
-                  toast.success('E-mail confirmado com sucesso!');
-                  setAuthMode('login');
-                }} 
-                className="w-full bg-[#15803d] hover:bg-[#166534] text-white font-bold py-3"
-              >
-                Simular Confirmação de E-mail
-              </Button>
               <Button 
                 onClick={() => resendMutation.mutate({ email })} 
                 variant="outline" 

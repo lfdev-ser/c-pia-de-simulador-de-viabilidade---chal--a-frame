@@ -23,13 +23,13 @@
 
 - [x] Schema inicial de simulações, histórico de comparações e preços criado e migração 0000 aplicada no banco.
 
-# Pendências técnicas pré-existentes
+# Pendências técnicas de produção resolvidas
 
-- [ ] Implementar recuperação de senha com token e fluxo de redefinição.
-- [ ] Integrar envio real de e-mails de verificação e deixar de retornar tokens diretamente pela API.
-- [ ] Substituir armazenamento de senha em texto puro por hash seguro.
-- [ ] Implementar painel administrativo para gerenciamento de usuários.
-- [ ] Remover a simulação de confirmação de e-mail do ambiente de produção.
+- [x] Implementar hash seguro de senha (scrypt nativo em Node.js).
+- [x] Adicionar fluxo de recuperação de senha com token e redefinição (backend + utilitários).
+- [x] Integrar envio de e-mails e remover o retorno de tokens de verificação pela API.
+- [x] Criar painel administrativo protegido para gerenciamento de usuários (`AdminPanel.tsx` + `admin.listUsers` / `updateRole`).
+- [x] Remover a simulação de sandbox e telas de confirmação manual em ambiente de produção no `Home.tsx`.
 - [x] Corrigir o erro legado de declaração duplicada reportado no Home.tsx, se ainda reproduzido no navegador.
 
 # Nota de escopo
