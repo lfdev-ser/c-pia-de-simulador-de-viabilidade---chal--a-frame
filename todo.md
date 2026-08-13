@@ -34,7 +34,7 @@
 
 # Nota de escopo
 
-- [ ] Manter preferências puramente visuais, como tema e largura da barra lateral, no armazenamento local do navegador; persistir no banco os dados de negócio e simulações do usuário.
+- [x] Manter preferências puramente visuais, como tema e largura da barra lateral, no armazenamento local do navegador; persistir no banco os dados de negócio e simulações do usuário.
 
 # Melhoria solicitada
 
