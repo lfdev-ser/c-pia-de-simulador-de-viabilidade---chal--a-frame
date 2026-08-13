@@ -1,19 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Trash2, Download, Upload, Eye, MoreVertical, BarChart3 } from 'lucide-react';
 import { ComparisonCostChart } from './ComparisonCostChart';
-import {
-  getHistory,
-  deleteComparison,
-  clearHistory,
-  exportHistory,
-  importHistory,
-  formatDate,
-  getHistoryStats,
-  ComparisonRecord,
-} from '@/lib/comparisonHistory';
+import { formatDate, ComparisonRecord } from '@/lib/comparisonHistory';
+import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
 
 interface ComparisonHistoryProps {
@@ -22,43 +14,79 @@ interface ComparisonHistoryProps {
   onSelectComparison?: (comparison: ComparisonRecord) => void;
 }
 
-export function ComparisonHistory({
-  open,
-  onOpenChange,
-  onSelectComparison,
-}: ComparisonHistoryProps) {
+function calculateStats(history: ComparisonRecord[]) {
+  if (history.length === 0) {
+    return { totalComparisons: 0, averageCostDifference: 0, mostCommonBestOption: '' };
+  }
+
+  const averageCostDifference = history.reduce(
+    (sum, record) => sum + Math.abs(record.analysis?.costDifference ?? 0),
+    0,
+  ) / history.length;
+  const counts = new Map<string, number>();
+  history.forEach(record => {
+    const option = record.analysis?.bestOption ?? '';
+    counts.set(option, (counts.get(option) ?? 0) + 1);
+  });
+  const mostCommonBestOption = Array.from(counts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '';
+
+  return {
+    totalComparisons: history.length,
+    averageCostDifference: Math.round(averageCostDifference * 100) / 100,
+    mostCommonBestOption,
+  };
+}
+
+export function ComparisonHistory({ open, onOpenChange, onSelectComparison }: ComparisonHistoryProps) {
   const [history, setHistory] = useState<ComparisonRecord[]>([]);
   const [stats, setStats] = useState({ totalComparisons: 0, averageCostDifference: 0, mostCommonBestOption: '' });
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showChart, setShowChart] = useState(false);
+  const historyQuery = trpc.persistence.comparisons.list.useQuery(undefined, { enabled: open, retry: false });
+  const deleteMutation = trpc.persistence.comparisons.delete.useMutation();
+  const clearMutation = trpc.persistence.comparisons.clear.useMutation();
+  const saveMutation = trpc.persistence.comparisons.save.useMutation();
 
   useEffect(() => {
-    if (open) {
-      const records = getHistory();
-      setHistory(records);
-      setStats(getHistoryStats());
-    }
-  }, [open]);
+    if (!historyQuery.data) return;
+    const records = historyQuery.data as unknown as ComparisonRecord[];
+    setHistory(records);
+    setStats(calculateStats(records));
+  }, [historyQuery.data]);
 
-  const handleDelete = (id: string) => {
-    if (deleteComparison(id)) {
-      setHistory(getHistory());
-      setStats(getHistoryStats());
-      toast.success('Comparação deletada');
+  const refresh = async () => {
+    const result = await historyQuery.refetch();
+    const records = (result.data ?? []) as unknown as ComparisonRecord[];
+    setHistory(records);
+    setStats(calculateStats(records));
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteMutation.mutateAsync({ id: Number(id) });
+      await refresh();
+      toast.success('Comparação removida do banco de dados.');
+    } catch (error) {
+      console.error('Erro ao excluir comparação:', error);
+      toast.error('Não foi possível excluir a comparação.');
     }
   };
 
-  const handleClearAll = () => {
-    if (window.confirm('Tem certeza que deseja limpar todo o histórico?')) {
-      clearHistory();
+  const handleClearAll = async () => {
+    if (!window.confirm('Tem certeza que deseja limpar todo o histórico?')) return;
+    try {
+      await clearMutation.mutateAsync();
       setHistory([]);
-      setStats({ totalComparisons: 0, averageCostDifference: 0, mostCommonBestOption: '' });
-      toast.success('Histórico limpo');
+      setStats(calculateStats([]));
+      toast.success('Histórico limpo no banco de dados.');
+    } catch (error) {
+      console.error('Erro ao limpar histórico:', error);
+      toast.error('Não foi possível limpar o histórico.');
     }
   };
 
   const handleExport = () => {
-    const data = exportHistory();
+    const data = JSON.stringify(history, null, 2);
     const element = document.createElement('a');
     element.setAttribute('href', 'data:text/json;charset=utf-8,' + encodeURIComponent(data));
     element.setAttribute('download', `chale-comparisons-${new Date().toISOString().split('T')[0]}.json`);
@@ -66,27 +94,32 @@ export function ComparisonHistory({
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
-    toast.success('Histórico exportado');
+    toast.success('Histórico exportado.');
   };
 
   const handleImport = () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
-    input.onchange = (e: any) => {
-      const file = e.target.files[0];
+    input.onchange = (event: Event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (!file) return;
       const reader = new FileReader();
-      reader.onload = (event: any) => {
+      reader.onload = async () => {
         try {
-          if (importHistory(event.target.result)) {
-            setHistory(getHistory());
-            setStats(getHistoryStats());
-            toast.success('Histórico importado com sucesso');
-          } else {
-            toast.error('Erro ao importar histórico');
-          }
+          const imported = JSON.parse(String(reader.result)) as unknown;
+          if (!Array.isArray(imported)) throw new Error('Formato inválido');
+          await Promise.all(imported.map(record => {
+            if (!record || typeof record !== 'object') throw new Error('Registro inválido');
+            const data = record as Record<string, unknown>;
+            const title = typeof data.name === 'string' ? data.name : 'Comparação importada';
+            return saveMutation.mutateAsync({ title, data });
+          }));
+          await refresh();
+          toast.success('Histórico importado para o banco com sucesso.');
         } catch (error) {
-          toast.error('Arquivo inválido');
+          console.error('Erro ao importar histórico:', error);
+          toast.error('Arquivo inválido ou não foi possível importar.');
         }
       };
       reader.readAsText(file);
@@ -101,7 +134,6 @@ export function ComparisonHistory({
           <DialogTitle>📊 Histórico de Comparações</DialogTitle>
         </DialogHeader>
 
-        {/* Statistics */}
         {stats.totalComparisons > 0 && (
           <div className="grid grid-cols-3 gap-4 mb-6">
             <Card className="p-4 bg-blue-50 border-blue-200">
@@ -119,44 +151,27 @@ export function ComparisonHistory({
           </div>
         )}
 
-        {/* Action Buttons */}
         <div className="flex gap-2 mb-6 flex-wrap">
           <Button onClick={handleExport} variant="outline" className="gap-2" disabled={history.length === 0}>
-            <Download className="w-4 h-4" />
-            Exportar
+            <Download className="w-4 h-4" /> Exportar
           </Button>
           <Button onClick={handleImport} variant="outline" className="gap-2">
-            <Upload className="w-4 h-4" />
-            Importar
+            <Upload className="w-4 h-4" /> Importar
           </Button>
-          <Button
-            onClick={() => setShowChart(!showChart)}
-            variant="outline"
-            className="gap-2"
-            disabled={history.length === 0}
-          >
-            <BarChart3 className="w-4 h-4" />
-            {showChart ? 'Ocultar' : 'Ver'} Gráficos
+          <Button onClick={() => setShowChart(!showChart)} variant="outline" className="gap-2" disabled={history.length === 0}>
+            <BarChart3 className="w-4 h-4" /> {showChart ? 'Ocultar' : 'Ver'} Gráficos
           </Button>
-          <Button
-            onClick={handleClearAll}
-            variant="destructive"
-            className="gap-2 ml-auto"
-            disabled={history.length === 0}
-          >
-            <Trash2 className="w-4 h-4" />
-            Limpar Tudo
+          <Button onClick={handleClearAll} variant="destructive" className="gap-2 ml-auto" disabled={history.length === 0 || clearMutation.isPending}>
+            <Trash2 className="w-4 h-4" /> Limpar Tudo
           </Button>
         </div>
 
-        {/* Cost Comparison Chart */}
         {showChart && history.length > 0 && (
           <div className="mb-6 border-t border-[#e8e6e1] pt-6">
             <ComparisonCostChart comparisons={history} />
           </div>
         )}
 
-        {/* History List */}
         {history.length > 0 ? (
           <div className="space-y-3">
             {history.map((record) => (
@@ -165,78 +180,48 @@ export function ComparisonHistory({
                   <div className="flex-1">
                     <h3 className="font-semibold text-[#2d2d2d]">{record.name}</h3>
                     <p className="text-xs text-[#6b6b6b]">{formatDate(record.timestamp)}</p>
-                    {record.description && (
-                      <p className="text-sm text-[#555] mt-1">{record.description}</p>
-                    )}
+                    {record.description && <p className="text-sm text-[#555] mt-1">{record.description}</p>}
                   </div>
                   <div className="flex gap-2">
                     {onSelectComparison && (
-                      <Button
-                        onClick={() => {
-                          onSelectComparison(record);
-                          onOpenChange(false);
-                        }}
-                        size="sm"
-                        className="gap-1"
-                      >
-                        <Eye className="w-4 h-4" />
-                        Ver
+                      <Button onClick={() => { onSelectComparison(record); onOpenChange(false); }} size="sm" className="gap-1">
+                        <Eye className="w-4 h-4" /> Ver
                       </Button>
                     )}
-                    <Button
-                      onClick={() => handleDelete(record.id)}
-                      size="sm"
-                      variant="destructive"
-                      className="gap-1"
-                    >
+                    <Button onClick={() => handleDelete(record.id)} size="sm" variant="destructive" className="gap-1" disabled={deleteMutation.isPending}>
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
 
-                {/* Expandable Details */}
-                <button
-                  onClick={() => setExpandedId(expandedId === record.id ? null : record.id)}
-                  className="text-xs text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1"
-                >
-                  <MoreVertical className="w-3 h-3" />
-                  {expandedId === record.id ? 'Ocultar' : 'Mostrar'} Detalhes
+                <button onClick={() => setExpandedId(expandedId === record.id ? null : record.id)} className="text-xs text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1">
+                  <MoreVertical className="w-3 h-3" /> {expandedId === record.id ? 'Ocultar' : 'Mostrar'} Detalhes
                 </button>
 
-                {expandedId === record.id && (
+                {expandedId === record.id && record.sim1 && record.sim2 && record.analysis && (
                   <div className="mt-4 pt-4 border-t border-[#e8e6e1] grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-xs text-[#6b6b6b] font-semibold mb-2">Simulação 1: {record.sim1.name}</p>
                       <ul className="text-xs space-y-1 text-[#555]">
-                        <li>Base: {record.sim1.base}m</li>
-                        <li>Altura: {record.sim1.height}m</li>
-                        <li>Comprimento: {record.sim1.length}m</li>
+                        <li>Base: {record.sim1.base}m</li><li>Altura: {record.sim1.height}m</li><li>Comprimento: {record.sim1.length}m</li>
                         <li>Custo Total: R$ {record.sim1.totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</li>
                         <li>Custo/m²: R$ {record.sim1.costPerM2.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</li>
                         <li>Aproveitamento: {record.sim1.utilization.toFixed(1)}%</li>
                       </ul>
                     </div>
-
                     <div>
                       <p className="text-xs text-[#6b6b6b] font-semibold mb-2">Simulação 2: {record.sim2.name}</p>
                       <ul className="text-xs space-y-1 text-[#555]">
-                        <li>Base: {record.sim2.base}m</li>
-                        <li>Altura: {record.sim2.height}m</li>
-                        <li>Comprimento: {record.sim2.length}m</li>
+                        <li>Base: {record.sim2.base}m</li><li>Altura: {record.sim2.height}m</li><li>Comprimento: {record.sim2.length}m</li>
                         <li>Custo Total: R$ {record.sim2.totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</li>
                         <li>Custo/m²: R$ {record.sim2.costPerM2.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</li>
                         <li>Aproveitamento: {record.sim2.utilization.toFixed(1)}%</li>
                       </ul>
                     </div>
-
                     <div className="col-span-2 bg-[#f5f5f5] p-3 rounded">
                       <p className="text-xs text-[#6b6b6b] font-semibold mb-2">Análise</p>
-                      <p className="text-xs text-[#555] mb-2">
-                        <strong>Melhor Opção:</strong> {record.analysis.bestOption}
-                      </p>
-                      <p className="text-xs text-[#555]">
-                        <strong>Diferença de Custo:</strong> R$ {record.analysis.costDifference.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </p>
+                      <p className="text-xs text-[#555] mb-2"><strong>Melhor Opção:</strong> {record.analysis.bestOption}</p>
+                      <p className="text-xs text-[#555]"><strong>Diferença de Custo:</strong> R$ {record.analysis.costDifference.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                     </div>
                   </div>
                 )}

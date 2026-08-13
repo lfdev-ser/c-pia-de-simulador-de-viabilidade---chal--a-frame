@@ -1,6 +1,13 @@
-import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { and, desc, eq } from "drizzle-orm";
+import {
+  InsertUser,
+  comparisonHistory,
+  materialPrices,
+  simulations,
+  userSettings,
+  users,
+} from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -79,14 +86,107 @@ export async function upsertUser(user: InsertUser): Promise<void> {
 
 export async function getUserByOpenId(openId: string) {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot get user: database not available");
-    return undefined;
-  }
-
+  if (!db) return undefined;
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-
   return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getUserById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function listUserSimulations(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(simulations)
+    .where(eq(simulations.userId, userId))
+    .orderBy(desc(simulations.createdAt));
+}
+
+export async function createUserSimulation(userId: number, title: string, data: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível");
+  const result = await db.insert(simulations).values({ userId, title, data });
+  return Number(result[0].insertId);
+}
+
+export async function deleteUserSimulation(userId: number, id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível");
+  await db.delete(simulations).where(and(eq(simulations.id, id), eq(simulations.userId, userId)));
+}
+
+export async function getUserSettings(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(userSettings).where(eq(userSettings.userId, userId)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function upsertUserSettings(userId: number, data: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível");
+  await db.insert(userSettings).values({ userId, data }).onDuplicateKeyUpdate({ set: { data } });
+}
+
+export async function listUserComparisons(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(comparisonHistory)
+    .where(eq(comparisonHistory.userId, userId))
+    .orderBy(desc(comparisonHistory.createdAt));
+}
+
+export async function createUserComparison(
+  userId: number,
+  title: string,
+  data: string,
+  simulation1Id?: number,
+  simulation2Id?: number,
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível");
+  const result = await db.insert(comparisonHistory).values({
+    userId,
+    title,
+    data,
+    simulation1Id: simulation1Id ?? null,
+    simulation2Id: simulation2Id ?? null,
+  });
+  return Number(result[0].insertId);
+}
+
+export async function deleteUserComparison(userId: number, id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível");
+  await db.delete(comparisonHistory).where(and(eq(comparisonHistory.id, id), eq(comparisonHistory.userId, userId)));
+}
+
+export async function clearUserComparisons(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível");
+  await db.delete(comparisonHistory).where(eq(comparisonHistory.userId, userId));
+}
+
+export async function listUserMaterialPrices(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(materialPrices).where(eq(materialPrices.userId, userId));
+}
+
+export async function replaceUserMaterialPrices(
+  userId: number,
+  prices: Array<{ materialKey: string; price: string }>,
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível");
+  await db.delete(materialPrices).where(eq(materialPrices.userId, userId));
+  if (prices.length > 0) {
+    await db.insert(materialPrices).values(prices.map(price => ({ ...price, userId })));
+  }
 }
 
 // TODO: add feature queries here as your schema grows.

@@ -9,6 +9,7 @@ import { PDFShareButton } from './PDFShareButton';
 import { calculateEPSOptimization } from '@/lib/epsOptimization';
 import { toast } from 'sonner';
 import { ICF_ICEFLEX_M2_PER_PACKAGE } from '@/lib/wallCostConstants';
+import { trpc } from '@/lib/trpc';
 import { useState, useMemo } from 'react';
 
 interface SavedSimulation {
@@ -88,6 +89,56 @@ export default function ComparadorSimulacoes({
     if (!data2) return null;
     return calculateCosts(data2);
   }, [data2, calculateCosts]);
+
+  const saveComparisonMutation = trpc.persistence.comparisons.save.useMutation();
+
+  const handleSaveComparison = async () => {
+    if (!sim1 || !sim2 || !data1 || !data2 || !costs1 || !costs2) {
+      toast.error('Selecione duas simulações antes de salvar a comparação.');
+      return;
+    }
+
+    const costDifference = costs2.totalCost - costs1.totalCost;
+    const bestOption = costs1.totalCost <= costs2.totalCost ? `Simulação 1 (${sim1.name})` : `Simulação 2 (${sim2.name})`;
+    try {
+      await saveComparisonMutation.mutateAsync({
+        title: `${sim1.name} × ${sim2.name}`,
+        simulation1Id: Number(sim1.id),
+        simulation2Id: Number(sim2.id),
+        data: {
+          name: `${sim1.name} × ${sim2.name}`,
+          description: 'Comparação salva no banco de dados',
+          sim1: {
+            name: sim1.name,
+            base: sim1.base,
+            height: sim1.height,
+            length: sim1.length,
+            totalCost: costs1.totalCost,
+            costPerM2: costs1.costPerM2,
+            utilization: data1.utilization,
+          },
+          sim2: {
+            name: sim2.name,
+            base: sim2.base,
+            height: sim2.height,
+            length: sim2.length,
+            totalCost: costs2.totalCost,
+            costPerM2: costs2.costPerM2,
+            utilization: data2.utilization,
+          },
+          analysis: {
+            bestOption,
+            recommendation: costDifference === 0 ? 'As duas simulações apresentam o mesmo custo total.' : `${bestOption} apresenta o menor custo total.`,
+            costDifference,
+          },
+        },
+      });
+      toast.success('Comparação salva no banco de dados.');
+    } catch (error) {
+      console.error('Erro ao salvar comparação:', error);
+      toast.error('Não foi possível salvar a comparação.');
+    }
+  };
 
   const DifferenceIndicator = ({ value1, value2, format = 'number' }: { value1: number; value2: number; format?: string }) => {
     if (!value1 || !value2) return null;
@@ -350,6 +401,14 @@ export default function ComparadorSimulacoes({
         <div className="flex justify-end gap-2 mt-6 flex-wrap">
           {sim1 && sim2 && data1 && data2 && costs1 && costs2 && (
             <>
+              <Button
+                onClick={handleSaveComparison}
+                variant="outline"
+                className="gap-2"
+                disabled={saveComparisonMutation.isPending}
+              >
+                Salvar comparação
+              </Button>
               <Button 
                 onClick={() => setShowCustomizationModal(true)}
                 className="gap-2"

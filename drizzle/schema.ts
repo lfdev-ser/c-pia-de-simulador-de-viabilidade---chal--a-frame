@@ -29,3 +29,62 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
 // TODO: Add your tables here
+
+/**
+ * Simulações salvas pelos usuários
+ */
+export const simulations = mysqlTable("simulations", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  data: text("data").notNull(), // JSON com os parâmetros da simulação
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Simulation = typeof simulations.$inferSelect;
+export type InsertSimulation = typeof simulations.$inferInsert;
+
+/**
+ * Histórico de comparações entre simulações
+ */
+export const comparisonHistory = mysqlTable("comparison_history", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  simulation1Id: int("simulation1Id"),
+  simulation2Id: int("simulation2Id"),
+  data: text("data").notNull(), // JSON com dados comparativos
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ComparisonHistory = typeof comparisonHistory.$inferSelect;
+export type InsertComparisonHistory = typeof comparisonHistory.$inferInsert;
+
+/**
+ * Preços customizados de materiais por usuário ou globais
+ */
+export const materialPrices = mysqlTable("material_prices", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"), // null se for global/padrão
+  materialKey: varchar("materialKey", { length: 100 }).notNull(),
+  price: varchar("price", { length: 50 }).notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type MaterialPrice = typeof materialPrices.$inferSelect;
+export type InsertMaterialPrice = typeof materialPrices.$inferInsert;
+
+/**
+ * Configurações de negócio do simulador por usuário.
+ * O JSON mantém a flexibilidade dos editores existentes sem perder o isolamento por conta.
+ */
+export const userSettings = mysqlTable("user_settings", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  data: text("data").notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UserSettings = typeof userSettings.$inferSelect;
+export type InsertUserSettings = typeof userSettings.$inferInsert;

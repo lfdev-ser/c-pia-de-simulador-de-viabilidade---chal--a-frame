@@ -25,6 +25,7 @@ import { EPSBlockVisualization } from './EPSBlockVisualization';
 import { ComparisonHistory } from './ComparisonHistory';
 import { saveComparison } from '@/lib/comparisonHistory';
 import { ComparisonRecord } from '@/lib/comparisonHistory';
+import { trpc } from '@/lib/trpc';
 import {
   DEFAULT_MATERIAL_PRICES,
   MaterialPrices,
@@ -223,8 +224,16 @@ export default function AFrameSimulator() {
   const [length, setLength] = useState(0.0);
   const [isSharedView, setIsSharedView] = useState(false);
   const [sharedSimulationId, setSharedSimulationId] = useState('');
+
+  const savedSimulationsQuery = trpc.persistence.simulations.list.useQuery(undefined, { retry: false });
+  const saveSimulationMutation = trpc.persistence.simulations.save.useMutation();
+  const deleteSimulationMutation = trpc.persistence.simulations.delete.useMutation();
+  const persistedSettingsQuery = trpc.persistence.settings.get.useQuery(undefined, { retry: false });
+  const saveSettingsMutation = trpc.persistence.settings.save.useMutation();
+  const [settingsHydrated, setSettingsHydrated] = useState(false);
   
-  // Carregar preços do localStorage ou usar padrão
+  // Carregar preços do localStorage como fallback inicial; após a autenticação,
+  // os valores persistidos no banco substituem este estado.
   const [prices, setPrices] = useState<MaterialPrices>(() => {
     try {
       const saved = localStorage.getItem('chalePrices');
@@ -319,6 +328,61 @@ export default function AFrameSimulator() {
     }
   }, [geoTechnicalData]);
 
+  // Hidratar configurações do banco uma única vez por carregamento da conta.
+  useEffect(() => {
+    if (!persistedSettingsQuery.isSuccess) return;
+    const persisted = persistedSettingsQuery.data as {
+      prices?: MaterialPrices;
+      laborServices?: LaborService[];
+      customMaterials?: CustomMaterial[];
+      foundation?: FoundationBase | null;
+      geoTechnicalData?: unknown;
+      minFootHeight?: number;
+    } | null;
+
+    if (persisted) {
+      if (persisted.prices) setPrices(mergeMaterialPrices(persisted.prices));
+      if (persisted.laborServices) setLaborServices(persisted.laborServices);
+      if (persisted.customMaterials) setCustomMaterials(persisted.customMaterials);
+      if (persisted.foundation !== undefined) setFoundation(persisted.foundation);
+      if (persisted.geoTechnicalData !== undefined) setGeoTechnicalData(persisted.geoTechnicalData);
+      if (typeof persisted.minFootHeight === 'number') setMinFootHeight(persisted.minFootHeight);
+    }
+    setSettingsHydrated(true);
+  }, [persistedSettingsQuery.isSuccess, persistedSettingsQuery.data]);
+
+  // Persistir no banco as configurações de negócio do simulador. Tema e layout
+  // continuam locais por serem preferências específicas do navegador.
+  useEffect(() => {
+    if (!settingsHydrated || saveSettingsMutation.isPending) return;
+    saveSettingsMutation.mutate({
+      data: {
+        prices,
+        laborServices,
+        customMaterials,
+        foundation,
+        geoTechnicalData,
+        minFootHeight,
+      },
+    });
+  }, [settingsHydrated, prices, laborServices, customMaterials, foundation, geoTechnicalData, minFootHeight]);
+
+  // Carregar as simulações salvas na conta autenticada.
+  useEffect(() => {
+    if (!savedSimulationsQuery.isSuccess || !savedSimulationsQuery.data) return;
+    setSavedSimulations(savedSimulationsQuery.data.map((row) => {
+      const data = row.data as Record<string, unknown>;
+      return {
+        id: String(row.id),
+        name: row.title,
+        base: Number(data.base ?? 0),
+        height: Number(data.height ?? 0),
+        length: Number(data.length ?? 0),
+        timestamp: row.createdAt instanceof Date ? row.createdAt.getTime() : Date.now(),
+      };
+    }));
+  }, [savedSimulationsQuery.isSuccess, savedSimulationsQuery.data]);
+
   const handleResetSimulation = () => {
     setBase(0.0);
     setHeight(0.0);
@@ -345,7 +409,7 @@ export default function AFrameSimulator() {
     }
   };
 
-  const handleSaveSimulation = () => {
+  const handleSaveSimulation = async () => {
     if (!showResults) {
       toast.error('Ajuste os sliders antes de salvar a simulação.', {
         duration: 2000,
@@ -353,19 +417,22 @@ export default function AFrameSimulator() {
       });
       return;
     }
-    const newSimulation: SavedSimulation = {
-      id: Date.now().toString(),
-      name: `Simulação ${new Date().toLocaleDateString('pt-BR')} - ${base.toFixed(2)}x${height.toFixed(2)}x${length.toFixed(2)}m`,
-      base,
-      height,
-      length,
-      timestamp: Date.now(),
-    };
-    setSavedSimulations([...savedSimulations, newSimulation]);
-    toast.success('Simulação salva com sucesso!', {
-      duration: 2000,
-      position: 'top-center',
-    });
+
+    const title = `Simulação ${new Date().toLocaleDateString('pt-BR')} - ${base.toFixed(2)}x${height.toFixed(2)}x${length.toFixed(2)}m`;
+    try {
+      await saveSimulationMutation.mutateAsync({
+        title,
+        data: { base, height, length },
+      });
+      await savedSimulationsQuery.refetch();
+      toast.success('Simulação salva no banco de dados!', {
+        duration: 2000,
+        position: 'top-center',
+      });
+    } catch (error) {
+      console.error('Erro ao salvar simulação:', error);
+      toast.error('Não foi possível salvar a simulação. Verifique seu login e tente novamente.');
+    }
   };
 
   const handleLoadSimulation = (sim: SavedSimulation) => {
@@ -376,8 +443,15 @@ export default function AFrameSimulator() {
     setShowResults(true);
   };
 
-  const handleDeleteSimulation = (id: string) => {
-    setSavedSimulations(savedSimulations.filter(sim => sim.id !== id));
+  const handleDeleteSimulation = async (id: string) => {
+    try {
+      await deleteSimulationMutation.mutateAsync({ id: Number(id) });
+      setSavedSimulations(current => current.filter(sim => sim.id !== id));
+      toast.success('Simulação removida do banco de dados.');
+    } catch (error) {
+      console.error('Erro ao excluir simulação:', error);
+      toast.error('Não foi possível excluir a simulação.');
+    }
   };
 
   const handleCompareSimulations = (sim1: SavedSimulation, sim2: SavedSimulation) => {
