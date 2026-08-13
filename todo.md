@@ -59,3 +59,8 @@
 
 - [x] Diagnosticar e garantir que o envio de e-mails funcione sem falhas ou fornecer opção imediata de confirmação direta se o provedor externo não estiver ativo.
 
+# Painel Administrativo e Permissões
+
+- [x] Listar usuários cadastrados e promover a conta ativa para administrador.
+- [x] Validar e refinar o componente `AdminPanel.tsx` para garantir exclusão, alteração de cargo e estatísticas gerais.
+
