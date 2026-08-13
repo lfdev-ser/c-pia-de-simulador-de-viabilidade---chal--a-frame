@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import AFrameSimulator from '@/components/AFrameSimulator';
+import AFrameLogo from '@/components/AFrameLogo';
 import { getPasswordInputType } from '@/lib/passwordVisibility';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { ShieldCheck, Mail, Lock, Eye, EyeOff, User as UserIcon, LogOut, CheckCircle2, AlertCircle, ArrowRight, Sparkles, Building2, Calculator, FileText } from 'lucide-react';
+import { ShieldCheck, Mail, Lock, Eye, EyeOff, User as UserIcon, LogOut, CheckCircle2, AlertCircle, ArrowRight, Sparkles, Calculator, FileText } from 'lucide-react';
 
 export default function Home() {
   const { user, loading: authLoading, logout } = useAuth();
@@ -82,7 +83,7 @@ export default function Home() {
       <div className="min-h-screen bg-gradient-to-br from-[#faf8f3] via-[#f5f3f0] to-[#faf8f3]">
         <div className="bg-white border-b border-[#e8e6e1] px-6 py-3 flex justify-between items-center shadow-xs">
           <div className="flex items-center gap-2">
-            <Building2 className="w-6 h-6 text-[#15803d]" />
+            <AFrameLogo className="w-8 h-8 shrink-0" />
             <span className="font-bold text-lg text-[#2d2d2d]">Simulador Chalé A-frame ICF</span>
           </div>
           <div className="flex items-center gap-4">
@@ -102,7 +103,7 @@ export default function Home() {
       {/* Header */}
       <header className="border-b border-[#e8e6e1] bg-white/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex justify-between items-center max-w-7xl mx-auto w-full">
         <div className="flex items-center gap-2">
-          <Building2 className="w-7 h-7 text-[#15803d]" />
+          <AFrameLogo className="w-9 h-9 shrink-0" />
           <span className="font-extrabold text-xl text-[#2d2d2d] tracking-tight">Chalé A-frame ICF</span>
         </div>
         <div className="flex items-center gap-3">

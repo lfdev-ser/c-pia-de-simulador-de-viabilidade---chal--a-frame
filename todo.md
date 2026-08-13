@@ -45,3 +45,7 @@
 
 - [x] Integrar serviço transacional real (Resend) e fallback seguro para garantir a entrega dos e-mails de confirmação e redefinição de senha.
 
+# Identidade visual
+
+- [x] Substituir o desenho atual do cabeçalho por um símbolo visual de chalé A-frame ao lado de “Chalé A-frame ICF”.
+
