@@ -43,9 +43,14 @@ export default function Home() {
     }
   });
 
+  const [debugVerificationToken, setDebugVerificationToken] = useState<string | null>(null);
+
   const registerMutation = trpc.authEmail.register.useMutation({
     onSuccess: (data: any) => {
       toast.success(data.message);
+      if (data.verificationToken) {
+        setDebugVerificationToken(data.verificationToken);
+      }
       setAuthMode('verify_pending');
     },
     onError: (err: any) => {
@@ -71,6 +76,9 @@ export default function Home() {
   const resendMutation = trpc.authEmail.resendVerification.useMutation({
     onSuccess: (data: any) => {
       toast.success(data.message);
+      if (data.verificationToken) {
+        setDebugVerificationToken(data.verificationToken);
+      }
     },
     onError: (err: any) => {
       toast.error(err.message || 'Erro ao reenviar e-mail');
@@ -363,6 +371,14 @@ export default function Home() {
             </div>
 
             <div className="space-y-3">
+              {debugVerificationToken && (
+                <Button 
+                  onClick={() => verifyEmailMutation.mutate({ token: debugVerificationToken })}
+                  className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3"
+                >
+                  🚀 Ativar Conta Instantaneamente (Sandbox)
+                </Button>
+              )}
               <Button 
                 onClick={() => resendMutation.mutate({ email })} 
                 variant="outline" 

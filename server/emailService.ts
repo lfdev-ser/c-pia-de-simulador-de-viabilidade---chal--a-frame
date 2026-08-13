@@ -30,15 +30,15 @@ export async function sendVerificationEmail(toEmail: string, verificationToken: 
         html,
       });
       console.log(`[Email] E-mail de verificação enviado via Resend para ${toEmail}`);
-      return true;
+      return { sent: true, mode: 'resend' };
     } catch (error) {
       console.error('[Email] Falha ao enviar via Resend:', error);
     }
   }
 
-  // Fallback seguro em log para diagnóstico no sandbox caso RESEND_API_KEY não esteja configurada
+  // Fallback seguro em sandbox: exibe o link no console e retorna o token para teste imediato
   console.log(`[Email Sandbox Fallback] Para: ${toEmail} | Link de Confirmação: ${confirmUrl}`);
-  return false;
+  return { sent: false, mode: 'sandbox', confirmUrl, verificationToken };
 }
 
 export async function sendPasswordResetEmail(toEmail: string, resetToken: string, originUrl: string) {
@@ -67,12 +67,12 @@ export async function sendPasswordResetEmail(toEmail: string, resetToken: string
         html,
       });
       console.log(`[Email] E-mail de redefinição enviado via Resend para ${toEmail}`);
-      return true;
+      return { sent: true, mode: 'resend' };
     } catch (error) {
       console.error('[Email] Falha ao enviar via Resend:', error);
     }
   }
 
   console.log(`[Email Sandbox Fallback] Para: ${toEmail} | Link de Redefinição: ${resetUrl}`);
-  return false;
+  return { sent: false, mode: 'sandbox', resetUrl, resetToken };
 }

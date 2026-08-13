@@ -71,9 +71,17 @@ export const appRouter = router({
             passwordHash: hashedPassword,
             verificationToken,
           }).where(eq(users.id, user.id));
+
+          const origin = `${ctx.req.protocol}://${ctx.req.get('host') || 'localhost:3000'}`;
+          const emailResult = await sendVerificationEmail(input.email, verificationToken, origin);
+
           return {
             success: true,
-            message: "Cadastro atualizado! Verifique seu e-mail para confirmar a conta.",
+            message: emailResult.sent 
+              ? "Cadastro atualizado! Verifique seu e-mail para confirmar a conta." 
+              : "Cadastro atualizado! Como o serviço de e-mail não está configurado, utilize o botão abaixo para confirmar instantaneamente.",
+            debugLink: emailResult.sent ? undefined : emailResult.confirmUrl,
+            verificationToken: emailResult.sent ? undefined : emailResult.verificationToken,
           };
         }
 
@@ -88,11 +96,15 @@ export const appRouter = router({
         });
 
         const origin = `${ctx.req.protocol}://${ctx.req.get('host') || 'localhost:3000'}`;
-        await sendVerificationEmail(input.email, verificationToken, origin);
+        const emailResult = await sendVerificationEmail(input.email, verificationToken, origin);
 
         return {
           success: true,
-          message: "Cadastro realizado com sucesso! Enviamos um link de confirmação para o seu e-mail.",
+          message: emailResult.sent 
+            ? "Cadastro realizado com sucesso! Enviamos um link de confirmação para o seu e-mail." 
+            : "Cadastro realizado! Como o serviço de e-mail não está configurado neste ambiente, utilize o botão abaixo para confirmar instantaneamente.",
+          debugLink: emailResult.sent ? undefined : emailResult.confirmUrl,
+          verificationToken: emailResult.sent ? undefined : emailResult.verificationToken,
         };
       }),
 
@@ -148,9 +160,16 @@ export const appRouter = router({
         await db.update(users).set({ verificationToken }).where(eq(users.id, found[0].id));
 
         const origin = `${ctx.req.protocol}://${ctx.req.get('host') || 'localhost:3000'}`;
-        await sendVerificationEmail(input.email, verificationToken, origin);
+        const emailResult = await sendVerificationEmail(input.email, verificationToken, origin);
 
-        return { success: true, message: "Novo link de confirmação enviado para o seu e-mail." };
+        return { 
+          success: true, 
+          message: emailResult.sent 
+            ? "Novo link de confirmação enviado para o seu e-mail." 
+            : "Novo link gerado! Como o serviço de e-mail não está configurado, utilize o link de ativação direta abaixo.",
+          debugLink: emailResult.sent ? undefined : emailResult.confirmUrl,
+          verificationToken: emailResult.sent ? undefined : emailResult.verificationToken,
+        };
       }),
 
     forgotPassword: publicProcedure
