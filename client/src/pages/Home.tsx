@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { trpc } from '@/lib/trpc';
 import AFrameSimulator from '@/components/AFrameSimulator';
+import { getPasswordInputType } from '@/lib/passwordVisibility';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { ShieldCheck, Mail, Lock, User as UserIcon, LogOut, CheckCircle2, AlertCircle, ArrowRight, Sparkles, Building2, Calculator, FileText } from 'lucide-react';
+import { ShieldCheck, Mail, Lock, Eye, EyeOff, User as UserIcon, LogOut, CheckCircle2, AlertCircle, ArrowRight, Sparkles, Building2, Calculator, FileText } from 'lucide-react';
 
 export default function Home() {
   const { user, loading: authLoading, logout } = useAuth();
@@ -16,6 +17,8 @@ export default function Home() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
 
   const utils = trpc.useUtils();
 
@@ -232,13 +235,22 @@ export default function Home() {
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                   <Input 
-                    type="password" 
+                    type={getPasswordInputType(showLoginPassword)} 
                     placeholder="••••••••" 
                     value={password} 
                     onChange={(e) => setPassword(e.target.value)} 
-                    className="pl-10" 
+                    className="pl-10 pr-10" 
                     required 
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPassword((visible) => !visible)}
+                    className="absolute right-3 top-2.5 text-gray-400 hover:text-[#15803d] transition-colors"
+                    aria-label={showLoginPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                    title={showLoginPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  >
+                    {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
@@ -304,13 +316,22 @@ export default function Home() {
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                   <Input 
-                    type="password" 
+                    type={getPasswordInputType(showRegisterPassword)} 
                     placeholder="••••••••" 
                     value={password} 
                     onChange={(e) => setPassword(e.target.value)} 
-                    className="pl-10" 
+                    className="pl-10 pr-10" 
                     required 
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowRegisterPassword((visible) => !visible)}
+                    className="absolute right-3 top-2.5 text-gray-400 hover:text-[#15803d] transition-colors"
+                    aria-label={showRegisterPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                    title={showRegisterPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  >
+                    {showRegisterPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
