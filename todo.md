@@ -49,3 +49,7 @@
 
 - [x] Substituir o desenho atual do cabeçalho por um símbolo visual de chalé A-frame ao lado de “Chalé A-frame ICF”.
 
+# Ajuste solicitado na landing page
+
+- [x] Remover o bloco “Acesso Seguro com Confirmação” e os textos de confirmação por e-mail da landing page, sem remover o login/cadastro.
+

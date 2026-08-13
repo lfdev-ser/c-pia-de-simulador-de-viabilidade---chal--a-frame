@@ -169,19 +169,12 @@ export default function Home() {
                   <Calculator className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg text-[#2d2d2d]">Acesso Seguro com Confirmação</h3>
-                  <p className="text-xs text-gray-500">Cadastre-se para salvar simulações e gerar PDFs.</p>
+                  <h3 className="font-bold text-lg text-[#2d2d2d]">Recursos do Simulador</h3>
+                  <p className="text-xs text-gray-500">Planeje, compare e gere relatórios técnicos.</p>
                 </div>
               </div>
 
               <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-[#15803d] mt-0.5 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-semibold text-sm text-[#2d2d2d]">Confirmação por E-mail Próprio</h4>
-                    <p className="text-xs text-gray-500">Receba um link de ativação exclusivo para validar seu acesso.</p>
-                  </div>
-                </div>
                 <div className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-[#15803d] mt-0.5 flex-shrink-0" />
                   <div>
