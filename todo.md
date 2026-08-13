@@ -30,7 +30,7 @@
 - [ ] Substituir armazenamento de senha em texto puro por hash seguro.
 - [ ] Implementar painel administrativo para gerenciamento de usuários.
 - [ ] Remover a simulação de confirmação de e-mail do ambiente de produção.
-- [ ] Corrigir o erro legado de declaração duplicada reportado no Home.tsx, se ainda reproduzido no navegador.
+- [x] Corrigir o erro legado de declaração duplicada reportado no Home.tsx, se ainda reproduzido no navegador.
 
 # Nota de escopo
 
