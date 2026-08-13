@@ -53,4 +53,5 @@
 
 - [x] Remover o bloco “Acesso Seguro com Confirmação” e os textos de confirmação por e-mail da landing page, sem remover o login/cadastro.
 - [x] Remover o indicador “78L/m² — Concreto Interno” da landing page, mantendo o dado no simulador técnico.
+- [x] Remover a referência textual “(78L/m²)” do parágrafo descritivo da landing page.
 

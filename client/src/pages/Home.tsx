@@ -128,7 +128,7 @@ export default function Home() {
                 Simulador Profissional de Viabilidade para Chalés A-frame
               </h1>
               <p className="text-lg text-[#555555] leading-relaxed">
-                Planeje sua obra com precisão milimétrica. Calcule área útil, otimização de blocos EPS sem desperdício, consumo exato de concreto (78L/m²), aço, acabamento Iceflex e gere relatórios técnicos em PDF com gráficos avançados.
+                Planeje sua obra com precisão milimétrica. Calcule área útil, otimize blocos EPS sem desperdício, estime o consumo de materiais, acabamento Iceflex e gere relatórios técnicos em PDF com gráficos avançados.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <Button 
