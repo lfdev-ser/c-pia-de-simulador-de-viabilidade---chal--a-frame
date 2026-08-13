@@ -40,3 +40,8 @@
 
 - [x] Adicionar botão com ícone de olho para mostrar/ocultar senha no login.
 - [x] Adicionar botão com ícone de olho para mostrar/ocultar senha no cadastro.
+
+# Correção urgente
+
+- [x] Integrar serviço transacional real (Resend) e fallback seguro para garantir a entrega dos e-mails de confirmação e redefinição de senha.
+

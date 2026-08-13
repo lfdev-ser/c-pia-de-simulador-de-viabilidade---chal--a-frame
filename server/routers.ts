@@ -24,6 +24,7 @@ import { users } from "../drizzle/schema";
 import { eq, sql } from "drizzle-orm";
 import crypto from "crypto";
 import { hashPassword, verifyPassword } from "./authUtils";
+import { sendVerificationEmail, sendPasswordResetEmail } from "./emailService";
 import { TRPCError } from "@trpc/server";
 
 const jsonObject = z.record(z.string(), z.unknown());
@@ -54,7 +55,7 @@ export const appRouter = router({
   authEmail: router({
     register: publicProcedure
       .input(z.object({ name: z.string().min(2), email: z.string().email(), password: z.string().min(6) }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         const db = await getDb();
         if (!db) throw new Error("Banco de dados indisponível");
 
@@ -85,6 +86,9 @@ export const appRouter = router({
           verificationToken,
           role: 'user',
         });
+
+        const origin = `${ctx.req.protocol}://${ctx.req.get('host') || 'localhost:3000'}`;
+        await sendVerificationEmail(input.email, verificationToken, origin);
 
         return {
           success: true,
@@ -135,22 +139,25 @@ export const appRouter = router({
 
     resendVerification: publicProcedure
       .input(z.object({ email: z.string().email() }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         const db = await getDb();
         if (!db) throw new Error("Banco de dados indisponível");
         const found = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
         if (found.length === 0) throw new Error("E-mail não encontrado.");
         const verificationToken = crypto.randomBytes(32).toString('hex');
         await db.update(users).set({ verificationToken }).where(eq(users.id, found[0].id));
+
+        const origin = `${ctx.req.protocol}://${ctx.req.get('host') || 'localhost:3000'}`;
+        await sendVerificationEmail(input.email, verificationToken, origin);
+
         return { success: true, message: "Novo link de confirmação enviado para o seu e-mail." };
       }),
 
     forgotPassword: publicProcedure
       .input(z.object({ email: z.string().email() }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         const user = await getUserByEmail(input.email);
         if (!user) {
-          // Por segurança, retorna sucesso genérico para não expor cadastros
           return { success: true, message: "Se o e-mail estiver cadastrado, enviaremos instruções de redefinição." };
         }
         const db = await getDb();
@@ -160,10 +167,12 @@ export const appRouter = router({
         const resetPasswordExpires = new Date(Date.now() + 3600 * 1000); // 1 hora
         await db.update(users).set({ resetPasswordToken, resetPasswordExpires }).where(eq(users.id, user.id));
 
+        const origin = `${ctx.req.protocol}://${ctx.req.get('host') || 'localhost:3000'}`;
+        await sendPasswordResetEmail(input.email, resetPasswordToken, origin);
+
         return {
           success: true,
           message: "Instruções de redefinição enviadas para o seu e-mail.",
-          resetPasswordToken, // Em produção vai por e-mail transacional
         };
       }),
 
