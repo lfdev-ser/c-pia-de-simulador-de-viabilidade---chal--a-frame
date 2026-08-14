@@ -16,14 +16,19 @@ import { ShieldCheck, Mail, Lock, Eye, EyeOff, User as UserIcon, LogOut, CheckCi
 
 export default function Home() {
   const { user, loading: authLoading, logout } = useAuth();
-  const [authMode, setAuthMode] = useState<'landing' | 'login' | 'register' | 'verify_pending'>('landing');
+  const [authMode, setAuthMode] = useState<'landing' | 'login' | 'register' | 'verify_pending' | 'forgot_password' | 'reset_password'>('landing');
   
   // Form states
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [resetTokenFromUrl, setResetTokenFromUrl] = useState<string | null>(null);
+  const [debugResetLink, setDebugResetLink] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
 
   const utils = trpc.useUtils();
 
@@ -33,6 +38,11 @@ export default function Home() {
     const verifyToken = params.get('verify');
     if (verifyToken) {
       verifyEmailMutation.mutate({ token: verifyToken });
+    }
+    const resetToken = params.get('reset');
+    if (resetToken) {
+      setResetTokenFromUrl(resetToken);
+      setAuthMode('reset_password');
     }
   }, []);
 
@@ -44,6 +54,29 @@ export default function Home() {
     },
     onError: (err: any) => {
       toast.error(err.message || 'Erro ao confirmar e-mail');
+    }
+  });
+
+  const forgotPasswordMutation = trpc.authEmail.forgotPassword.useMutation({
+    onSuccess: (data: any) => {
+      toast.success(data.message);
+      if (data.debugLink) {
+        setDebugResetLink(data.debugLink);
+      }
+    },
+    onError: (err: any) => {
+      toast.error(err.message || 'Erro ao solicitar redefinição');
+    }
+  });
+
+  const resetPasswordMutation = trpc.authEmail.resetPassword.useMutation({
+    onSuccess: (data: any) => {
+      toast.success(data.message);
+      setAuthMode('login');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    },
+    onError: (err: any) => {
+      toast.error(err.message || 'Erro ao redefinir senha');
     }
   });
 
@@ -338,8 +371,10 @@ export default function Home() {
               </Button>
             </form>
 
-            <div className="text-center pt-2 border-t text-sm text-gray-600">
-              Não tem uma conta?{' '}
+            <div className="flex items-center justify-between pt-2 border-t text-xs">
+              <button onClick={() => setAuthMode('forgot_password')} className="text-[#15803d] font-bold hover:underline">
+                Esqueci / Criei minha senha
+              </button>
               <button onClick={() => setAuthMode('register')} className="text-[#15803d] font-bold hover:underline">
                 Cadastre-se grátis
               </button>
@@ -472,6 +507,125 @@ export default function Home() {
             <div className="pt-2">
               <button onClick={() => setAuthMode('login')} className="text-sm text-[#15803d] font-bold hover:underline">
                 Ir para a tela de login
+              </button>
+            </div>
+          </Card>
+        )}
+
+        {authMode === 'forgot_password' && (
+          <Card className="max-w-md w-full p-8 rounded-3xl shadow-xl border border-gray-200 bg-white space-y-6">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-black text-[#2d2d2d]">Definir ou Recuperar Senha</h2>
+              <p className="text-sm text-gray-500">Informe seu e-mail cadastrado para receber o link de criação/redefinição de senha.</p>
+            </div>
+
+            <form onSubmit={(e) => { e.preventDefault(); forgotPasswordMutation.mutate({ email }); }} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">E-mail Cadastrado</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                  <Input 
+                    type="email" 
+                    placeholder="seu@email.com" 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                    className="pl-10" 
+                    required 
+                  />
+                </div>
+              </div>
+
+              <Button type="submit" className="w-full bg-[#15803d] hover:bg-[#166534] text-white font-bold py-3" disabled={forgotPasswordMutation.isPending}>
+                {forgotPasswordMutation.isPending ? 'Enviando...' : 'Enviar Link de Redefinição'}
+              </Button>
+            </form>
+
+            {debugResetLink && (
+              <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-900 space-y-2">
+                <p className="font-bold">Link Direto (Sandbox):</p>
+                <p className="break-all text-[11px] text-blue-600 underline cursor-pointer" onClick={() => {
+                  const urlObj = new URL(debugResetLink, window.location.origin);
+                  const token = urlObj.searchParams.get('reset');
+                  if (token) {
+                    setResetTokenFromUrl(token);
+                    setAuthMode('reset_password');
+                  }
+                }}>
+                  {debugResetLink}
+                </p>
+                <p className="text-[10px] text-slate-500">Clique acima para definir sua senha instantaneamente.</p>
+              </div>
+            )}
+
+            <div className="text-center pt-2 border-t text-sm">
+              <button onClick={() => setAuthMode('login')} className="text-[#15803d] font-bold hover:underline">
+                Lembrou a senha? Faça login
+              </button>
+            </div>
+          </Card>
+        )}
+
+        {authMode === 'reset_password' && (
+          <Card className="max-w-md w-full p-8 rounded-3xl shadow-xl border border-gray-200 bg-white space-y-6">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-black text-[#2d2d2d]">Criar Nova Senha</h2>
+              <p className="text-sm text-gray-500">Defina uma senha segura com no mínimo 6 caracteres.</p>
+            </div>
+
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              if (newPassword !== confirmNewPassword) {
+                toast.error('As senhas não coincidem.');
+                return;
+              }
+              if (!resetTokenFromUrl) {
+                toast.error('Token de redefinição ausente.');
+                return;
+              }
+              resetPasswordMutation.mutate({ token: resetTokenFromUrl, newPassword });
+            }} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Nova Senha</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                  <Input 
+                    type={getPasswordInputType(showResetPassword)} 
+                    placeholder="••••••••" 
+                    value={newPassword} 
+                    onChange={(e) => setNewPassword(e.target.value)} 
+                    className="pl-10 pr-10" 
+                    required 
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowResetPassword((v) => !v)}
+                    className="absolute right-3 top-2.5 text-gray-400 hover:text-[#15803d]"
+                  >
+                    {showResetPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Confirmar Nova Senha</label>
+                <Input 
+                  type={getPasswordInputType(showResetPassword)} 
+                  placeholder="••••••••" 
+                  value={confirmNewPassword} 
+                  onChange={(e) => setConfirmNewPassword(e.target.value)} 
+                  className="pl-10" 
+                  required 
+                />
+              </div>
+
+              <Button type="submit" className="w-full bg-[#15803d] hover:bg-[#166534] text-white font-bold py-3" disabled={resetPasswordMutation.isPending}>
+                {resetPasswordMutation.isPending ? 'Salvando...' : 'Salvar Nova Senha'}
+              </Button>
+            </form>
+
+            <div className="text-center pt-2 border-t text-sm">
+              <button onClick={() => setAuthMode('login')} className="text-[#15803d] font-bold hover:underline">
+                Voltar para o login
               </button>
             </div>
           </Card>

@@ -201,11 +201,15 @@ export const appRouter = router({
         await db.update(users).set({ resetPasswordToken, resetPasswordExpires }).where(eq(users.id, user.id));
 
         const origin = `${ctx.req.protocol}://${ctx.req.get('host') || 'localhost:3000'}`;
-        await sendPasswordResetEmail(input.email, resetPasswordToken, origin);
+        const emailResult = await sendPasswordResetEmail(input.email, resetPasswordToken, origin);
 
         return {
           success: true,
-          message: "Instruções de redefinição enviadas para o seu e-mail.",
+          message: emailResult.sent
+            ? "Instruções de redefinição enviadas para o seu e-mail."
+            : "Link de redefinição gerado! Como o serviço de e-mail não está configurado, utilize o link de redefinição direta abaixo.",
+          debugLink: emailResult.sent ? undefined : emailResult.resetUrl,
+          resetToken: emailResult.sent ? undefined : emailResult.resetToken,
         };
       }),
 
