@@ -146,3 +146,12 @@
 - [ ] Calcular Share of Voice e métricas de CTR, impressões e cliques no painel administrativo, com desempenho por cidade/estado e acompanhamento de orçamento em tempo real.
 - [ ] Implementar validação automática de criativos 640×360 px (proporção 16:9, limite de 500 KB, formatos WebP/PNG/JPG) com ferramenta de recorte automático (crop 16:9) no upload.
 - [ ] Criar e executar testes automatizados de seleção, geolocalização, frequency cap, lazy loading e distribuição de impressões.
+# Fase 4 — Transformação do Ad Manager em Produto Comercial
+
+- [ ] Implementar ciclo de vida completo de estados da campanha (`DRAFT`, `PENDING_PAYMENT`, `PAID`, `PENDING_REVIEW`, `APPROVED`, `ACTIVE`, `PAUSED`, `EXPIRED`, `EXHAUSTED`, `CANCELLED`).
+- [ ] Criar tabelas de pedidos, transações financeiras e webhooks de pagamento com garantia de idempotência e auditoria.
+- [ ] Implementar inventário em tempo real (`available`, `reserved`, `delivered`, `remaining`) com proteção estrita contra overbooking.
+- [ ] Implementar prova de entrega detalhada separando *ad request*, *ad rendered*, *impression* e *billable impression*.
+- [ ] Documentar matematicamente o Sponsor Score e garantir que o fator estocástico não impeça a entrega das impressões contratadas.
+- [ ] Desenvolver painel de analytics para o patrocinador (contratadas, entregues, restantes, cliques, CTR, SoV, cidades, estados, orçamento).
+- [ ] Criar suíte abrangente de testes automatizados cobrindo pagamentos, webhooks, duplicidade, overbooking, concorrência e estados de campanha.
