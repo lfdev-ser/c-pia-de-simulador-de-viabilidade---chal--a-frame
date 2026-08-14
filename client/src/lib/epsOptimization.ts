@@ -50,27 +50,38 @@ const STEEL_PER_M2_WALL = 5; // kg por m² de parede
  * @returns Detalhes dos blocos
  */
 function calculateBlockDetails(length: number, height: number): EPSBlockDetails {
-  // Calcular quantos blocos cabem perfeitamente
-  const blocksLengthwise = Math.floor(length / STANDARD_EPS_BLOCK.length);
-  const blocksHeightwise = Math.floor(height / STANDARD_EPS_BLOCK.height);
+  const EPS_MULTIPLE_TOLERANCE = 0.01;
+  // A aritmética decimal do JavaScript pode gerar restos mínimos em valores exatos
+  // (por exemplo, 3.60 / 0.40). A tolerância evita falsos cortes.
+  const rawRemainderLength = length % STANDARD_EPS_BLOCK.length;
+  const rawRemainderHeight = height % STANDARD_EPS_BLOCK.height;
+  const remainderLength = rawRemainderLength < EPS_MULTIPLE_TOLERANCE ||
+    Math.abs(rawRemainderLength - STANDARD_EPS_BLOCK.length) < EPS_MULTIPLE_TOLERANCE
+    ? 0
+    : rawRemainderLength;
+  const remainderHeight = rawRemainderHeight < EPS_MULTIPLE_TOLERANCE ||
+    Math.abs(rawRemainderHeight - STANDARD_EPS_BLOCK.height) < EPS_MULTIPLE_TOLERANCE
+    ? 0
+    : rawRemainderHeight;
+
+  // Calcular quantos blocos cabem perfeitamente, considerando a tolerância
+  const blocksLengthwise = Math.floor((length - remainderLength + EPS_MULTIPLE_TOLERANCE) / STANDARD_EPS_BLOCK.length);
+  const blocksHeightwise = Math.floor((height - remainderHeight + EPS_MULTIPLE_TOLERANCE) / STANDARD_EPS_BLOCK.height);
   
   // Blocos inteiros
   const wholeBlocks = blocksLengthwise * blocksHeightwise;
   
   // Verificar se há resto (blocos que precisam ser cortados)
-  const remainderLength = length % STANDARD_EPS_BLOCK.length;
-  const remainderHeight = height % STANDARD_EPS_BLOCK.height;
-  
   let cutBlocks = 0;
   let wastePercentagePerBlock = 0;
   
-  if (remainderLength > 0.01) {
+  if (remainderLength > EPS_MULTIPLE_TOLERANCE) {
     cutBlocks += blocksHeightwise; // uma coluna de blocos cortados
   }
-  if (remainderHeight > 0.01) {
+  if (remainderHeight > EPS_MULTIPLE_TOLERANCE) {
     cutBlocks += blocksLengthwise; // uma linha de blocos cortados
   }
-  if (remainderLength > 0.01 && remainderHeight > 0.01) {
+  if (remainderLength > EPS_MULTIPLE_TOLERANCE && remainderHeight > EPS_MULTIPLE_TOLERANCE) {
     cutBlocks += 1; // um bloco no canto cortado nos dois lados
   }
   

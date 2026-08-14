@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Download, Loader } from 'lucide-react';
+import { Download, Loader, MessageCircle, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
+import type { EPSOptimizationResult } from '@/lib/epsOptimization';
 
 interface GeoTechnicalData {
   soilType: string;
@@ -63,7 +64,16 @@ interface ExpandedPDFExportButtonProps {
   }>;
   geoTechnicalData?: GeoTechnicalData;
   foundation?: FoundationBase;
+  epsOptimization: EPSOptimizationResult;
 }
+
+type PDFAction = {
+  saveFile?: boolean;
+  shareChannel?: 'whatsapp' | 'email';
+};
+
+const formatBRL = (value: number) => `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
 
 export default function ExpandedPDFExportButton({
   simulationName,
@@ -99,10 +109,11 @@ export default function ExpandedPDFExportButton({
   laborServices,
   geoTechnicalData,
   foundation,
+  epsOptimization,
 }: ExpandedPDFExportButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const generatePDF = async () => {
+  const generatePDF = async ({ saveFile = true, shareChannel }: PDFAction = {}) => {
     try {
       setIsGenerating(true);
 
@@ -228,8 +239,8 @@ export default function ExpandedPDFExportButton({
         yPosition += 6;
       });
 
-      // Verificar se precisa de nova página
-      if (yPosition > pageHeight - 60) {
+      // Gráfico de economia de EPS e materiais
+      if (yPosition > pageHeight - 105) {
         pdf.addPage();
         yPosition = 20;
       }
@@ -237,14 +248,104 @@ export default function ExpandedPDFExportButton({
       yPosition += 5;
       pdf.setDrawColor(200, 200, 200);
       pdf.line(margin, yPosition, pageWidth - margin, yPosition);
-      yPosition += 5;
+      yPosition += 7;
+      pdf.setFontSize(12);
+      pdf.setFont(undefined as any, 'bold');
+      pdf.setTextColor(21, 128, 61);
+      pdf.text(('4. ECONOMIA ESTIMADA COM OTIMIZAÇÃO DE EPS') as any, margin, yPosition);
+      yPosition += 6;
+      pdf.setFontSize(9);
+      pdf.setFont(undefined as any, 'normal');
+      pdf.setTextColor(80, 80, 80);
+      pdf.text(('Comparativo baseado nas formas inteiras/cortadas e nas dimensões múltiplas sugeridas.') as any, margin, yPosition);
+      yPosition += 7;
 
-      // Seção 4: Análise Geotécnica
+      const currentForms = epsOptimization.blockDetails.totalBlocks;
+      const optimizedForms = epsOptimization.optimalBlockDetails.totalBlocks;
+      const currentEpsCost = currentForms * 75.70 * 2;
+      const optimizedEpsCost = optimizedForms * 75.70 * 2;
+      const maxCost = Math.max(currentEpsCost, optimizedEpsCost, 1);
+      const maxForms = Math.max(currentForms, optimizedForms, 1);
+      const chartTop = yPosition;
+      const chartHeight = 36;
+      const barWidth = 22;
+      const groupWidth = 55;
+      const chartLeft = margin + 10;
+
+      const drawBar = (x: number, value: number, maxValue: number, color: [number, number, number], label: string, valueLabel: string) => {
+        const barHeight = Math.max(1, (value / maxValue) * chartHeight);
+        pdf.setFillColor(...color);
+        pdf.roundedRect(x, chartTop + chartHeight - barHeight, barWidth, barHeight, 1, 1, 'F');
+        pdf.setFontSize(8);
+        pdf.setTextColor(45, 45, 45);
+        pdf.text(valueLabel as any, x + barWidth / 2, chartTop + chartHeight - barHeight - 2, { align: 'center' } as any);
+        pdf.setFontSize(8);
+        pdf.setTextColor(90, 90, 90);
+        pdf.text(label as any, x + barWidth / 2, chartTop + chartHeight + 6, { align: 'center' } as any);
+      };
+
+      drawBar(chartLeft, currentEpsCost, maxCost, [148, 163, 184], 'Atual', formatBRL(currentEpsCost));
+      drawBar(chartLeft + barWidth + 6, optimizedEpsCost, maxCost, [21, 128, 61], 'Otimizado', formatBRL(optimizedEpsCost));
+      pdf.setFontSize(9);
+      pdf.setFont(undefined as any, 'bold');
+      pdf.setTextColor(45, 45, 45);
+      pdf.text(('Custo estimado de EPS') as any, chartLeft, chartTop + chartHeight + 14);
+
+      const formsChartLeft = margin + 105;
+      drawBar(formsChartLeft, currentForms, maxForms, [148, 163, 184], 'Atual', `${currentForms} formas`);
+      drawBar(formsChartLeft + barWidth + 6, optimizedForms, maxForms, [21, 128, 61], 'Otimizado', `${optimizedForms} formas`);
+      pdf.text(('Quantidade de formas') as any, formsChartLeft, chartTop + chartHeight + 14);
+
+      yPosition = chartTop + chartHeight + 24;
+      pdf.setFont(undefined as any, 'normal');
+      pdf.setFontSize(9);
+      pdf.setTextColor(45, 45, 45);
+      pdf.text((`Formas inteiras atuais: ${epsOptimization.blockDetails.wholeBlocks} | Formas cortadas atuais: ${epsOptimization.blockDetails.cutBlocks}`) as any, margin, yPosition);
+      yPosition += 5;
+      pdf.text((`Após otimização: ${epsOptimization.optimalBlockDetails.wholeBlocks} inteiras | ${epsOptimization.optimalBlockDetails.cutBlocks} cortadas`) as any, margin, yPosition);
+      yPosition += 5;
+      pdf.setFont(undefined as any, 'bold');
+      pdf.setTextColor(21, 128, 61);
+      pdf.text((`Economia potencial estimada: ${formatBRL(epsOptimization.financialSavings)} e ${epsOptimization.materialSavings} forma(s)`) as any, margin, yPosition);
+      yPosition += 12;
+
+      // Segundo mini-gráfico comparativo de materiais estruturais principais (Concreto, Aço, Revestimento)
+      if (yPosition > pageHeight - 75) {
+        pdf.addPage();
+        yPosition = 20;
+      }
+
+      pdf.setFontSize(10);
+      pdf.setFont(undefined as any, 'bold');
+      pdf.setTextColor(45, 45, 45);
+      pdf.text(('Custos comparativos dos insumos principais da obra cinza:') as any, margin, yPosition);
+      yPosition += 6;
+
+      const matChartTop = yPosition;
+      const matChartHeight = 24;
+      const matBarWidth = 14;
+      const groupSpacing = 42;
+      const matLeft = margin + 8;
+
+      const maxMatCost = Math.max(epsOptimization.financialSavings ? concreteCost : 1, steelCost, iceflexCost, 1);
+
+      const drawMatGroup = (x: number, title: string, costValue: number) => {
+        drawBar(x, costValue, maxMatCost, [30, 41, 59], title, formatBRL(costValue));
+      };
+
+      drawMatGroup(matLeft, 'Concreto', concreteCost);
+      drawMatGroup(matLeft + groupSpacing, 'Aço', steelCost);
+      drawMatGroup(matLeft + groupSpacing * 2, 'Revestimento', iceflexCost);
+      drawMatGroup(matLeft + groupSpacing * 3, 'Fundação', foundationCost);
+
+      yPosition = matChartTop + matChartHeight + 16;
+
+      // Seção 5: Análise Geotécnica
       if (geoTechnicalData) {
         pdf.setFontSize(12);
         pdf.setFont(undefined as any, 'bold');
         pdf.setTextColor(21, 128, 61);
-        pdf.text(('4. ANÁLISE GEOTÉCNICA') as any, margin, yPosition);
+        pdf.text(('5. ANÁLISE GEOTÉCNICA') as any, margin, yPosition);
         yPosition += 5;
 
         const geoData = [
@@ -282,12 +383,12 @@ export default function ExpandedPDFExportButton({
         yPosition += 5;
       }
 
-      // Seção 5: Estrutura de Base/Fundação
+      // Seção 6: Estrutura de Base/Fundação
       if (foundation) {
         pdf.setFontSize(12);
         pdf.setFont(undefined as any, 'bold');
         pdf.setTextColor(21, 128, 61);
-        pdf.text(('5. ESTRUTURA DE BASE/FUNDAÇÃO') as any, margin, yPosition);
+        pdf.text(('6. ESTRUTURA DE BASE/FUNDAÇÃO') as any, margin, yPosition);
         yPosition += 5;
 
         const foundationData = [
@@ -320,11 +421,11 @@ export default function ExpandedPDFExportButton({
         yPosition = 20;
       }
 
-      // Seção 6: Orçamento Detalhado
+      // Seção 7: Orçamento Detalhado
       pdf.setFontSize(12);
       pdf.setFont(undefined as any, 'bold');
       pdf.setTextColor(21, 128, 61);
-      pdf.text(('6. ORÇAMENTO DETALHADO') as any, margin, yPosition);
+      pdf.text(('7. ORÇAMENTO DETALHADO') as any, margin, yPosition);
       yPosition += 5;
 
       const calculatedObraCinzaCost = obraCinzaCost ?? (concreteCost + steelCost + epsCost + (finishingProductsCost ?? 0));
@@ -420,11 +521,35 @@ export default function ExpandedPDFExportButton({
         pageHeight - 10
       );
 
-      // Salvar PDF
+      // Exportar ou compartilhar o PDF
       const fileName = `relatorio_chale_${simulationName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
-      pdf.save(fileName);
+      const pdfBlob = pdf.output('blob');
+      const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+      const shareText = `Relatório técnico do ${simulationName}. Dimensões: ${base.toFixed(2)}m × ${height.toFixed(2)}m × ${length.toFixed(2)}m. Economia potencial de EPS: ${formatBRL(epsOptimization.financialSavings)}. Ajuste sugerido: ${epsOptimization.optimalLength.toFixed(2)}m × ${epsOptimization.optimalHeight.toFixed(2)}m.`;
 
-      toast.success('PDF exportado com sucesso!');
+      if (shareChannel && navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ title: `Relatório técnico — ${simulationName}`, text: shareText, files: [file] });
+        toast.success(`Relatório compartilhado via ${shareChannel === 'whatsapp' ? 'WhatsApp' : 'e-mail'}!`);
+      } else if (shareChannel) {
+        const downloadUrl = URL.createObjectURL(pdfBlob);
+        const downloadLink = document.createElement('a');
+        downloadLink.href = downloadUrl;
+        downloadLink.download = fileName;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+
+        if (shareChannel === 'whatsapp') {
+          window.open(`https://wa.me/?text=${encodeURIComponent(`${shareText}\n\nO PDF foi baixado para anexar à conversa.`)}`, '_blank', 'noopener,noreferrer');
+        } else {
+          window.location.href = `mailto:?subject=${encodeURIComponent(`Relatório técnico — ${simulationName}`)}&body=${encodeURIComponent(`${shareText}\n\nO PDF foi baixado. Anexe o arquivo a este e-mail.`)}`;
+        }
+        toast.success('PDF baixado e mensagem de compartilhamento preparada.');
+      } else if (saveFile) {
+        pdf.save(fileName);
+        toast.success('PDF exportado com sucesso!');
+      }
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);
       toast.error('Erro ao exportar PDF');
@@ -434,22 +559,31 @@ export default function ExpandedPDFExportButton({
   };
 
   return (
-    <button
-      onClick={generatePDF}
-      disabled={isGenerating}
-      className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#15803d] to-[#059669] text-white rounded-lg hover:from-[#166534] hover:to-[#047857] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-    >
-      {isGenerating ? (
-        <>
-          <Loader className="w-5 h-5 animate-spin" />
-          Gerando PDF...
-        </>
-      ) : (
-        <>
-          <Download className="w-5 h-5" />
-          Exportar Relatório Técnico Completo
-        </>
-      )}
-    </button>
+    <div className="flex flex-wrap items-center justify-center gap-3">
+      <button
+        onClick={() => generatePDF({ saveFile: true })}
+        disabled={isGenerating}
+        className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#15803d] to-[#059669] text-white rounded-lg hover:from-[#166534] hover:to-[#047857] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+      >
+        {isGenerating ? <Loader className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
+        {isGenerating ? 'Gerando PDF...' : 'Exportar Relatório Técnico Completo'}
+      </button>
+      <button
+        onClick={() => generatePDF({ saveFile: false, shareChannel: 'whatsapp' })}
+        disabled={isGenerating}
+        className="flex items-center gap-2 px-4 py-3 bg-[#25D366] text-white rounded-lg hover:bg-[#1ebe5d] disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+        title="Gerar e compartilhar o PDF pelo WhatsApp"
+      >
+        <MessageCircle className="w-5 h-5" /> WhatsApp
+      </button>
+      <button
+        onClick={() => generatePDF({ saveFile: false, shareChannel: 'email' })}
+        disabled={isGenerating}
+        className="flex items-center gap-2 px-4 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+        title="Gerar e compartilhar o PDF por e-mail"
+      >
+        <Mail className="w-5 h-5" /> E-mail
+      </button>
+    </div>
   );
 }

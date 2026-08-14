@@ -90,3 +90,9 @@
 
 
 
+# Novos Recursos Solicitados (Itens 1, 2 e 3)
+
+- [x] Implementar filtros por tipo de obra/mídia (Vídeos, Fotos de Blocos EPS, Folders/Catálogos) na galeria de Obras ICF, com contadores, resumo de resultados e estados acessíveis.
+- [x] Adicionar gráficos visuais de economia de EPS e gráficos comparativos de insumos estruturais (concreto, aço, revestimento e fundação) ao relatório técnico em PDF.
+- [x] Implementar botões de compartilhamento direto do relatório técnico via WhatsApp e e-mail com os clientes, com fallback para download e anexo manual.
+- [x] Corrigir a tolerância numérica do cálculo de formas inteiras/cortadas para não gerar cortes falsos em múltiplos como 3,60m ÷ 0,40m.

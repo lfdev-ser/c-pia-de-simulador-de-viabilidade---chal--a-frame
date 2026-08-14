@@ -35,6 +35,7 @@ import {
   mergeMaterialPrices,
 } from '@/lib/materialPrices';
 import { ICF_CONCRETE_PER_M2, ICF_FORMS_PER_M2, ICF_ICEFLEX_M2_PER_PACKAGE, ICF_STEEL_PER_M2 } from '@/lib/wallCostConstants';
+import { calculateEPSOptimization } from '@/lib/epsOptimization';
 
 interface SimulatorData {
   base: number;
@@ -1453,6 +1454,7 @@ export default function AFrameSimulator() {
             }))}
             geoTechnicalData={geoTechnicalData}
             foundation={foundation || undefined}
+            epsOptimization={calculateEPSOptimization(base, height, length)}
           />
         </div>
         )}

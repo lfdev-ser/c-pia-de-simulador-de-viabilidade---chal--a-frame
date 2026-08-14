@@ -275,22 +275,53 @@ export function IcfWorksGallery({ isAdmin }: IcfWorksGalleryProps) {
       )}
 
       {/* Filter Tabs */}
-      <div className="flex flex-wrap items-center gap-2">
-        <button onClick={() => setSelectedCategory('all')} className={`px-4 py-2 text-xs font-bold rounded-full transition-all ${selectedCategory === 'all' ? 'bg-slate-900 text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}>
-          Todos ({works.length})
-        </button>
-        <button onClick={() => setSelectedCategory('chalet')} className={`px-4 py-2 text-xs font-bold rounded-full transition-all flex items-center gap-1.5 ${selectedCategory === 'chalet' ? 'bg-emerald-700 text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}>
-          <Image className="w-3.5 h-3.5" /> Chalés ICF
-        </button>
-        <button onClick={() => setSelectedCategory('blocks')} className={`px-4 py-2 text-xs font-bold rounded-full transition-all flex items-center gap-1.5 ${selectedCategory === 'blocks' ? 'bg-emerald-700 text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}>
-          <Layers className="w-3.5 h-3.5" /> Blocos EPS
-        </button>
-        <button onClick={() => setSelectedCategory('folder')} className={`px-4 py-2 text-xs font-bold rounded-full transition-all flex items-center gap-1.5 ${selectedCategory === 'folder' ? 'bg-emerald-700 text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}>
-          <FileText className="w-3.5 h-3.5" /> Folders & Manuais
-        </button>
-        <button onClick={() => setSelectedCategory('video')} className={`px-4 py-2 text-xs font-bold rounded-full transition-all flex items-center gap-1.5 ${selectedCategory === 'video' ? 'bg-emerald-700 text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}>
-          <Video className="w-3.5 h-3.5" /> Vídeos
-        </button>
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filtrar galeria por tipo de mídia">
+          <button
+            type="button"
+            aria-pressed={selectedCategory === 'all'}
+            onClick={() => setSelectedCategory('all')}
+            className={`px-4 py-2 text-xs font-bold rounded-full transition-all ${selectedCategory === 'all' ? 'bg-slate-900 text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
+          >
+            Todos ({works.length})
+          </button>
+          <button
+            type="button"
+            aria-pressed={selectedCategory === 'chalet'}
+            onClick={() => setSelectedCategory('chalet')}
+            className={`px-4 py-2 text-xs font-bold rounded-full transition-all flex items-center gap-1.5 ${selectedCategory === 'chalet' ? 'bg-emerald-700 text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
+          >
+            <Image className="w-3.5 h-3.5" /> Chalés ICF ({works.filter((w: any) => w.category === 'chalet').length})
+          </button>
+          <button
+            type="button"
+            aria-pressed={selectedCategory === 'blocks'}
+            onClick={() => setSelectedCategory('blocks')}
+            className={`px-4 py-2 text-xs font-bold rounded-full transition-all flex items-center gap-1.5 ${selectedCategory === 'blocks' ? 'bg-emerald-700 text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
+          >
+            <Layers className="w-3.5 h-3.5" /> Blocos EPS ({works.filter((w: any) => w.category === 'blocks').length})
+          </button>
+          <button
+            type="button"
+            aria-pressed={selectedCategory === 'folder'}
+            onClick={() => setSelectedCategory('folder')}
+            className={`px-4 py-2 text-xs font-bold rounded-full transition-all flex items-center gap-1.5 ${selectedCategory === 'folder' ? 'bg-emerald-700 text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
+          >
+            <FileText className="w-3.5 h-3.5" /> Folders & Manuais ({works.filter((w: any) => w.category === 'folder').length})
+          </button>
+          <button
+            type="button"
+            aria-pressed={selectedCategory === 'video'}
+            onClick={() => setSelectedCategory('video')}
+            className={`px-4 py-2 text-xs font-bold rounded-full transition-all flex items-center gap-1.5 ${selectedCategory === 'video' ? 'bg-emerald-700 text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
+          >
+            <Video className="w-3.5 h-3.5" /> Vídeos ({works.filter((w: any) => w.category === 'video').length})
+          </button>
+        </div>
+        <p className="text-xs text-slate-500" aria-live="polite">
+          Exibindo <strong className="text-slate-700">{filteredWorks.length}</strong> de <strong className="text-slate-700">{works.length}</strong> arquivo(s)
+          {selectedCategory !== 'all' && ' nesta categoria.'}
+        </p>
       </div>
 
       {/* Gallery Grid */}
