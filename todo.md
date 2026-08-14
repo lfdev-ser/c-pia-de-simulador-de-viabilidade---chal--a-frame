@@ -102,3 +102,7 @@
 - [x] Adicionar procedimentos tRPC para listar, criar, atualizar e excluir posts de patrocinadores (protegidos para administradores).
 - [x] Desenvolver a interface administrativa no painel gerencial para gerenciar os patrocinadores com upload direto de imagens.
 - [x] Criar o componente público de exibição de patrocinadores em destaque no site e no simulador.
+- [ ] Adicionar colunas `address`, `website` e `phone` na tabela `sponsors` e atualizar o esquema Drizzle.
+- [ ] Atualizar os procedimentos tRPC e rotas de criação/atualização de sponsors para suportar endereço, site e telefone.
+- [ ] Ajustar o CSS e o container de imagem dos patrocinadores (`object-contain bg-white`) para exibir corretamente qualquer tamanho de logo ou banner sem cortes.
+- [ ] Atualizar `SponsorsAdminPanel.tsx` e `SponsorsCarousel.tsx` para incluir os novos campos de contato.

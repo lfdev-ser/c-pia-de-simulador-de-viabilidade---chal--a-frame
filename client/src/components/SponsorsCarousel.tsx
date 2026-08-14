@@ -1,7 +1,7 @@
 import React from 'react';
 import { trpc } from '@/lib/trpc';
 import { Card, CardContent } from '@/components/ui/card';
-import { ExternalLink, Award } from 'lucide-react';
+import { ExternalLink, Award, MapPin, Globe, Phone } from 'lucide-react';
 
 export function SponsorsCarousel() {
   const { data: sponsors = [], isLoading } = trpc.admin.listSponsors.useQuery();
@@ -31,23 +31,45 @@ export function SponsorsCarousel() {
         {sponsors.map((sponsor: any) => {
           const content = (
             <Card className="h-full bg-white border-emerald-100 hover:shadow-md hover:border-emerald-300 transition-all duration-200 rounded-2xl overflow-hidden flex flex-col">
-              <div className="relative h-44 bg-slate-100 overflow-hidden flex items-center justify-center p-4">
+              <div className="relative h-48 bg-white border-b border-slate-100 overflow-hidden flex items-center justify-center p-4">
                 <img
                   src={sponsor.imageUrl}
                   alt={sponsor.title}
-                  className="w-full h-full object-cover rounded-xl transition-transform duration-300 hover:scale-105"
+                  className="max-h-full max-w-full object-contain object-center transition-transform duration-300 hover:scale-105"
                 />
-                <div className="absolute top-3 left-3 bg-slate-900/70 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
+                <div className="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
                   {sponsor.name}
                 </div>
               </div>
-              <CardContent className="p-5 flex-1 flex flex-col justify-between">
+              <CardContent className="p-5 flex-1 flex flex-col justify-between space-y-4">
                 <div>
                   <h4 className="font-bold text-slate-900 text-base mb-1.5 line-clamp-1">{sponsor.title}</h4>
                   {sponsor.description && (
-                    <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed mb-4">{sponsor.description}</p>
+                    <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed mb-3">{sponsor.description}</p>
                   )}
+
+                  <div className="space-y-1.5 pt-2 border-t border-slate-100 text-xs text-slate-600">
+                    {sponsor.address && (
+                      <div className="flex items-start gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-emerald-700 shrink-0 mt-0.5" />
+                        <span className="line-clamp-1">{sponsor.address}</span>
+                      </div>
+                    )}
+                    {sponsor.phone && (
+                      <div className="flex items-center gap-1.5">
+                        <Phone className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                        <span>{sponsor.phone}</span>
+                      </div>
+                    )}
+                    {sponsor.website && (
+                      <div className="flex items-center gap-1.5">
+                        <Globe className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                        <span className="truncate text-emerald-700 font-medium">{sponsor.website}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
+
                 {sponsor.externalLink && (
                   <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-800 pt-2 border-t border-slate-100">
                     <span>Visitar site parceiro</span>

@@ -3,7 +3,7 @@ import { trpc } from '@/lib/trpc';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Award, Plus, Trash2, ExternalLink, Image as ImageIcon, Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { Award, Plus, Trash2, ExternalLink, Image as ImageIcon, Loader2, CheckCircle2, XCircle, MapPin, Globe, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function SponsorsAdminPanel() {
@@ -16,6 +16,9 @@ export function SponsorsAdminPanel() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [externalLink, setExternalLink] = useState('');
+  const [address, setAddress] = useState('');
+  const [website, setWebsite] = useState('');
+  const [phone, setPhone] = useState('');
   const [displayOrder, setDisplayOrder] = useState('0');
   const [isActive, setIsActive] = useState(true);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -69,6 +72,9 @@ export function SponsorsAdminPanel() {
     setTitle('');
     setDescription('');
     setExternalLink('');
+    setAddress('');
+    setWebsite('');
+    setPhone('');
     setDisplayOrder('0');
     setIsActive(true);
     setSelectedFile(null);
@@ -80,6 +86,9 @@ export function SponsorsAdminPanel() {
     setTitle(sponsor.title);
     setDescription(sponsor.description || '');
     setExternalLink(sponsor.externalLink || '');
+    setAddress(sponsor.address || '');
+    setWebsite(sponsor.website || '');
+    setPhone(sponsor.phone || '');
     setDisplayOrder(String(sponsor.displayOrder ?? 0));
     setIsActive(sponsor.isActive === 1);
     setIsAdding(true);
@@ -104,13 +113,17 @@ export function SponsorsAdminPanel() {
           const reader = new FileReader();
           reader.onload = async () => {
             const base64String = (reader.result as string).split(',')[1];
-            // Para simplicidade ou reenvio de imagem, pode usar uploadSponsor ou atualizar dados
+            // Se houver nova imagem, podemos atualizar incluindo a nova imagem através de upload ou requisição
+            // Para manter simples, enviamos os dados e a imagem nova
             await updateMutation.mutateAsync({
               id: editingId,
               name: name.trim(),
               title: title.trim(),
               description: description.trim() || undefined,
               externalLink: externalLink.trim() || undefined,
+              address: address.trim() || undefined,
+              website: website.trim() || undefined,
+              phone: phone.trim() || undefined,
               displayOrder: parseInt(displayOrder) || 0,
               isActive: isActive ? 1 : 0,
             });
@@ -123,6 +136,9 @@ export function SponsorsAdminPanel() {
             title: title.trim(),
             description: description.trim() || undefined,
             externalLink: externalLink.trim() || undefined,
+            address: address.trim() || undefined,
+            website: website.trim() || undefined,
+            phone: phone.trim() || undefined,
             displayOrder: parseInt(displayOrder) || 0,
             isActive: isActive ? 1 : 0,
           });
@@ -136,6 +152,9 @@ export function SponsorsAdminPanel() {
             title: title.trim(),
             description: description.trim() || undefined,
             externalLink: externalLink.trim() || undefined,
+            address: address.trim() || undefined,
+            website: website.trim() || undefined,
+            phone: phone.trim() || undefined,
             displayOrder: parseInt(displayOrder) || 0,
             isActive: isActive ? 1 : 0,
             fileName: selectedFile!.name,
@@ -160,11 +179,11 @@ export function SponsorsAdminPanel() {
           </div>
           <div>
             <CardTitle className="text-lg font-bold text-slate-900">Gerenciar Patrocinadores</CardTitle>
-            <p className="text-xs text-slate-500">Cadastre marcas parceiras para exibir banner em destaque no simulador.</p>
+            <p className="text-xs text-slate-500">Cadastre marcas parceiras com logo, endereço, site e telefone.</p>
           </div>
         </div>
         <Button
-          onClick={() => setIsAdding(!isAdding)}
+          onClick={() => { resetForm(); setIsAdding(true); }}
           className="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs flex items-center gap-1.5"
         >
           <Plus className="w-4 h-4" /> Novo Patrocinador
@@ -175,7 +194,7 @@ export function SponsorsAdminPanel() {
         {isAdding && (
           <form onSubmit={handleSubmit} className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4">
             <h4 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-              <ImageIcon className="w-4 h-4 text-emerald-700" /> Adicionar Novo Patrocinador
+              <ImageIcon className="w-4 h-4 text-emerald-700" /> {editingId ? 'Editar Patrocinador' : 'Adicionar Novo Patrocinador'}
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -211,11 +230,38 @@ export function SponsorsAdminPanel() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Link Externo (URL)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Endereço Completo</label>
+                <Input
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Ex: Av. Central, 1000 - São Paulo/SP"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Site / URL</label>
+                <Input
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  placeholder="https://suamarca.com.br"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Telefone / WhatsApp</label>
+                <Input
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="(11) 99999-9999"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Link do Botão de Ação</label>
                 <Input
                   value={externalLink}
                   onChange={(e) => setExternalLink(e.target.value)}
-                  placeholder="https://exemplo.com.br"
+                  placeholder="https://..."
                 />
               </div>
               <div>
@@ -228,14 +274,15 @@ export function SponsorsAdminPanel() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Logo / Banner (Imagem) *</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Logo / Banner (Imagem) {editingId ? '(opcional)' : '*'}</label>
                 <Input
                   type="file"
                   accept="image/*"
                   onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                  required
+                  required={!editingId}
                   className="text-xs file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
                 />
+                <p className="text-[10px] text-slate-500 mt-1">Recomendado: formato horizontal ou quadrado (ex: 400x300px).</p>
               </div>
             </div>
 
@@ -257,7 +304,7 @@ export function SponsorsAdminPanel() {
                 Cancelar
               </Button>
               <Button type="submit" disabled={isSubmitting} className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold">
-                {isSubmitting ? <><Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> Salvando...</> : 'Salvar Patrocinador'}
+                {isSubmitting ? <><Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> Salvando...</> : (editingId ? 'Atualizar Patrocinador' : 'Salvar Patrocinador')}
               </Button>
             </div>
           </form>
@@ -277,8 +324,8 @@ export function SponsorsAdminPanel() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {sponsors.map((sponsor: any) => (
               <div key={sponsor.id} className="flex gap-4 p-4 bg-slate-50 border border-slate-200 rounded-2xl items-center">
-                <div className="w-20 h-20 rounded-xl bg-white border border-slate-200 overflow-hidden flex-shrink-0 flex items-center justify-center p-2">
-                  <img src={sponsor.imageUrl} alt={sponsor.title} className="w-full h-full object-cover rounded-lg" />
+                <div className="w-24 h-24 rounded-xl bg-white border border-slate-200 overflow-hidden flex-shrink-0 flex items-center justify-center p-2 shadow-xs">
+                  <img src={sponsor.imageUrl} alt={sponsor.title} className="w-full h-full object-contain object-center" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
@@ -294,11 +341,15 @@ export function SponsorsAdminPanel() {
                     )}
                   </div>
                   <h4 className="text-sm font-bold text-slate-900 truncate">{sponsor.title}</h4>
-                  {sponsor.externalLink && (
-                    <a href={sponsor.externalLink} target="_blank" rel="noopener noreferrer" className="text-xs text-emerald-700 hover:underline flex items-center gap-1 mt-0.5 truncate">
-                      <span>{sponsor.externalLink}</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
+                  {sponsor.address && (
+                    <p className="text-[11px] text-slate-600 flex items-center gap-1 mt-0.5 truncate">
+                      <MapPin className="w-3 h-3 text-slate-400 shrink-0" /> {sponsor.address}
+                    </p>
+                  )}
+                  {sponsor.phone && (
+                    <p className="text-[11px] text-slate-600 flex items-center gap-1 mt-0.5 truncate">
+                      <Phone className="w-3 h-3 text-slate-400 shrink-0" /> {sponsor.phone}
+                    </p>
                   )}
                 </div>
                 <div className="flex items-center gap-1">

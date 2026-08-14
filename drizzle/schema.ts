@@ -117,6 +117,9 @@ export const sponsors = mysqlTable("sponsors", {
   description: text("description"),
   imageUrl: text("imageUrl").notNull(),
   externalLink: varchar("externalLink", { length: 500 }),
+  address: varchar("address", { length: 500 }),
+  website: varchar("website", { length: 255 }),
+  phone: varchar("phone", { length: 50 }),
   displayOrder: int("displayOrder").default(0).notNull(),
   isActive: int("isActive").default(1).notNull(), // 1 = ativo, 0 = inativo
   createdAt: timestamp("createdAt").defaultNow().notNull(),

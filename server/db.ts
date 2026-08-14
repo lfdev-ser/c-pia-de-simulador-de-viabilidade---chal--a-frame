@@ -288,6 +288,9 @@ export async function createSponsor(data: {
   description?: string;
   imageUrl: string;
   externalLink?: string;
+  address?: string;
+  website?: string;
+  phone?: string;
   displayOrder?: number;
   isActive?: number;
 }) {
@@ -299,6 +302,9 @@ export async function createSponsor(data: {
     description: data.description || null,
     imageUrl: data.imageUrl,
     externalLink: data.externalLink || null,
+    address: data.address || null,
+    website: data.website || null,
+    phone: data.phone || null,
     displayOrder: data.displayOrder ?? 0,
     isActive: data.isActive ?? 1,
   });
@@ -311,6 +317,9 @@ export async function updateSponsor(id: number, data: {
   description?: string;
   imageUrl?: string;
   externalLink?: string;
+  address?: string;
+  website?: string;
+  phone?: string;
   displayOrder?: number;
   isActive?: number;
 }) {
@@ -322,6 +331,9 @@ export async function updateSponsor(id: number, data: {
     description: data.description || null,
     ...(data.imageUrl ? { imageUrl: data.imageUrl } : {}),
     externalLink: data.externalLink || null,
+    address: data.address || null,
+    website: data.website || null,
+    phone: data.phone || null,
     displayOrder: data.displayOrder ?? 0,
     isActive: data.isActive ?? 1,
   }).where(eq(sponsors.id, id));
