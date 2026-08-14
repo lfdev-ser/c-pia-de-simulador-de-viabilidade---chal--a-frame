@@ -155,3 +155,11 @@
 - [ ] Documentar matematicamente o Sponsor Score e garantir que o fator estocástico não impeça a entrega das impressões contratadas.
 - [ ] Desenvolver painel de analytics para o patrocinador (contratadas, entregues, restantes, cliques, CTR, SoV, cidades, estados, orçamento).
 - [ ] Criar suíte abrangente de testes automatizados cobrindo pagamentos, webhooks, duplicidade, overbooking, concorrência e estados de campanha.
+# Fase 5 — Homologação Comercial em Sandbox
+
+- [ ] Atualizar documentação para refletir que o sistema realiza pacing e otimização para maximizar entregas sem promessas absolutas.
+- [ ] Simular fluxo completo de anunciante, pedido e pagamento simulado.
+- [ ] Homologar aprovação, ativação, entrega de impressões, cliques, CTR, SoV e encerramento.
+- [ ] Testar cenários de pagamentos duplicados, webhook duplicado, campanha expirada, esgotada, pausada e criativo rejeitado.
+- [ ] Testar segmentação incorreta, tentativa de ativação sem pagamento e fluxo de reembolso.
+- [ ] Apresentar relatório de evidências e falhas da homologação SANDBOX.
