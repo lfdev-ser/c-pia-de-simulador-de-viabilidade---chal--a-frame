@@ -13,23 +13,20 @@ export function EPSMultipleValidation({
   height,
   onSuggestedDimensionsChange,
 }: EPSMultipleValidationProps) {
-  // Dimensões padrão dos blocos EPS
-  const EPS_BLOCK_LENGTH = 1.25; // comprimento
-  const EPS_BLOCK_HEIGHT = 0.40; // altura (CORRIGIDO: era 0.25)
+  // Dimensões padrão dos blocos EPS (1.25m comprimento x 0.40m altura)
+  const EPS_BLOCK_LENGTH = 1.25;
+  const EPS_BLOCK_HEIGHT = 0.40;
 
   const validation = useMemo(() => {
-    if (length === 0 || height === 0) {
-      return null;
-    }
-
+    const hasDimensions = length > 0 && height > 0;
     const wastePercentage = calculateEPSWaste(length, height);
     const isLengthMultiple = Math.abs(length % EPS_BLOCK_LENGTH) < 0.01;
     const isHeightMultiple = Math.abs(height % EPS_BLOCK_HEIGHT) < 0.01;
     const isBothMultiples = isLengthMultiple && isHeightMultiple;
-
     const suggested = suggestOptimizedDimensions(length, height);
 
     return {
+      hasDimensions,
       wastePercentage,
       isLengthMultiple,
       isHeightMultiple,
@@ -40,11 +37,8 @@ export function EPSMultipleValidation({
     };
   }, [length, height]);
 
-  if (!validation || (validation.isBothMultiples && validation.wastePercentage < 0.5)) {
-    return null; // Sem avisos se as dimensões são perfeitas
-  }
-
   const getSeverity = () => {
+    if (!validation.hasDimensions) return 'info';
     if (validation.isBothMultiples) return 'success';
     if (validation.wastePercentage < 5) return 'info';
     if (validation.wastePercentage < 15) return 'warning';
@@ -97,56 +91,58 @@ export function EPSMultipleValidation({
         {colors.icon}
         <div className="flex-1">
           <h3 className={`font-semibold mb-2 ${colors.text}`}>
-            📏 Validação de Múltiplos de EPS
+            📏 Validação de Múltiplos de EPS (Bloco 1.25m × 0.40m)
           </h3>
 
           {/* Current Status */}
           <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
             <div className="bg-white bg-opacity-70 rounded p-2">
               <p className="text-gray-600 text-xs">Comprimento</p>
-              <p className={`font-bold ${validation.isLengthMultiple ? 'text-green-600' : 'text-orange-600'}`}>
+              <p className={`font-bold ${!validation.hasDimensions ? 'text-gray-500' : validation.isLengthMultiple ? 'text-green-600' : 'text-orange-600'}`}>
                 {length.toFixed(2)}m
-                {validation.isLengthMultiple ? ' ✓' : ` (resto: ${validation.lengthRemainder.toFixed(3)}m)`}
+                {!validation.hasDimensions ? '' : validation.isLengthMultiple ? ' ✓' : ` (resto: ${validation.lengthRemainder.toFixed(3)}m)`}
               </p>
               <p className="text-xs text-gray-500">Múltiplo de {EPS_BLOCK_LENGTH}m?</p>
             </div>
 
             <div className="bg-white bg-opacity-70 rounded p-2">
               <p className="text-gray-600 text-xs">Altura</p>
-              <p className={`font-bold ${validation.isHeightMultiple ? 'text-green-600' : 'text-orange-600'}`}>
+              <p className={`font-bold ${!validation.hasDimensions ? 'text-gray-500' : validation.isHeightMultiple ? 'text-green-600' : 'text-orange-600'}`}>
                 {height.toFixed(2)}m
-                {validation.isHeightMultiple ? ' ✓' : ` (resto: ${validation.heightRemainder.toFixed(3)}m)`}
+                {!validation.hasDimensions ? '' : validation.isHeightMultiple ? ' ✓' : ` (resto: ${validation.heightRemainder.toFixed(3)}m)`}
               </p>
               <p className="text-xs text-gray-500">Múltiplo de {EPS_BLOCK_HEIGHT}m?</p>
             </div>
 
             <div className="bg-white bg-opacity-70 rounded p-2 col-span-2">
-              <p className="text-gray-600 text-xs">Desperdício Estimado</p>
-              <p className={`font-bold ${validation.wastePercentage > 10 ? 'text-red-600' : 'text-orange-600'}`}>
-                {validation.wastePercentage.toFixed(2)}%
+              <p className="text-gray-600 text-xs">Desperdício Estimado de Recorte</p>
+              <p className={`font-bold ${!validation.hasDimensions ? 'text-gray-500' : validation.wastePercentage > 10 ? 'text-red-600' : 'text-orange-600'}`}>
+                {!validation.hasDimensions ? 'Aguardando medidas...' : `${validation.wastePercentage.toFixed(2)}%`}
               </p>
             </div>
           </div>
 
           {/* Message */}
           <p className={`text-sm mb-3 ${colors.text}`}>
-            {validation.isBothMultiples ? (
-              '✅ Dimensões perfeitas! Sem desperdício de EPS.'
+            {!validation.hasDimensions ? (
+              '💡 Dica: Insira as dimensões acima para verificar em tempo real se as medidas são múltiplos exatos das formas EPS (1.25m × 0.40m) e evitar cortes na obra.'
+            ) : validation.isBothMultiples ? (
+              '✅ Dimensões perfeitas! Sem desperdício de EPS e sem necessidade de cortes.'
             ) : validation.wastePercentage < 5 ? (
-              '✅ Desperdício mínimo. Dimensões otimizadas para EPS.'
+              '✅ Desperdício mínimo. Dimensões altamente otimizadas para EPS.'
             ) : validation.wastePercentage < 15 ? (
-              `⚠️ Desperdício moderado (${validation.wastePercentage.toFixed(1)}%). Considere ajustar as dimensões.`
+              `⚠️ Desperdício moderado (${validation.wastePercentage.toFixed(1)}%). Considere ajustar as dimensões para reduzir recortes.`
             ) : (
-              `🔴 Desperdício alto (${validation.wastePercentage.toFixed(1)}%). Recomenda-se ajustar as dimensões para evitar recortes desnecessários.`
+              `🔴 Desperdício alto (${validation.wastePercentage.toFixed(1)}%). Recomenda-se ajustar as dimensões para evitar recortes desnecessários de formas.`
             )}
           </p>
 
           {/* Suggested Dimensions */}
-          {!validation.isBothMultiples && validation.wastePercentage > 2 && (
+          {validation.hasDimensions && !validation.isBothMultiples && validation.wastePercentage > 1 && (
             <div className="bg-white bg-opacity-50 rounded p-3 mb-3">
               <p className="text-sm font-semibold mb-2 text-gray-800 flex items-center gap-2">
-                <Lightbulb className="w-4 h-4" />
-                Dimensões Otimizadas Sugeridas:
+                <Lightbulb className="w-4 h-4 text-amber-600" />
+                Dimensões Otimizadas Sugeridas para Evitar Cortes:
               </p>
               <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
                 <div>
@@ -167,10 +163,6 @@ export function EPSMultipleValidation({
                 </div>
               </div>
 
-              <p className="text-xs text-gray-600 mb-3">
-                Ajustando para essas dimensões, você evitará recortes desnecessários de blocos EPS.
-              </p>
-
               {onSuggestedDimensionsChange && (
                 <button
                   onClick={() =>
@@ -189,14 +181,11 @@ export function EPSMultipleValidation({
 
           {/* Technical Info */}
           <div className="text-xs text-gray-600 bg-white bg-opacity-50 rounded p-2">
-            <p className="font-semibold mb-1">📋 Informações Técnicas:</p>
+            <p className="font-semibold mb-1">📋 Informações Técnicas de Múltiplos:</p>
             <ul className="list-disc list-inside space-y-1">
-            <li>Blocos EPS padrão: {EPS_BLOCK_LENGTH}m × {EPS_BLOCK_HEIGHT}m (CORRIGIDO)</li>
-            <li>Cada 2 formas = 1m² de parede</li>
-            <li>78 litros de concreto por m² de parede</li>
-            <li>~5 kg de aço por m² de parede</li>
-            <li>Múltiplos perfeitos eliminam recortes</li>
-            <li>Reduz desperdício e custos de material</li>
+              <li>Blocos EPS padrão: 1.25m de comprimento × 0.40m de altura</li>
+              <li>Cada 2 formas = 1m² de parede</li>
+              <li>Múltiplos exatos eliminam recortes e garantem encaixe perfeito</li>
             </ul>
           </div>
         </div>

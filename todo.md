@@ -81,6 +81,10 @@
 # Simulador de Dimensões
 
 - [x] Incluir inputs numéricos manuais sincronizados em tempo real com as barras de Largura da Base, Altura da Cumeeira e Comprimento.
+- [x] Tornar os campos manuais o controle principal, aceitando vírgula ou ponto e mantendo os sliders como alternativa.
+- [x] Permitir qualquer medida positiva nos campos manuais, sem teto de 10 m, mantendo as recomendações apenas como referência.
+- [x] Exibir o alerta de múltiplos EPS de forma sempre visível no painel de dimensões, inclusive antes dos resultados, com estado inicial orientativo.
+- [x] Registrar em código o conteúdo do alerta de múltiplos EPS mostrando claramente ajuste recomendado, formas inteiras e formas cortadas para cada dimensão relevante.
 
 
 

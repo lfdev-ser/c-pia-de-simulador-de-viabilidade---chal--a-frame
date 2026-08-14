@@ -24,6 +24,7 @@ import { EPSOptimizationWarning } from './EPSOptimizationWarning';
 import { EPSMultipleValidation } from './EPSMultipleValidation';
 import { EPSBlockVisualization } from './EPSBlockVisualization';
 import { ComparisonHistory } from './ComparisonHistory';
+import { formatDimensionInput, parseDimensionInput } from '@/lib/dimensionInput';
 import { saveComparison } from '@/lib/comparisonHistory';
 import { ComparisonRecord } from '@/lib/comparisonHistory';
 import { trpc } from '@/lib/trpc';
@@ -931,22 +932,20 @@ export default function AFrameSimulator() {
               {/* Base Slider & Input */}
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-semibold text-[#2d2d2d]">Largura da Base</label>
+                  <label className="text-sm font-semibold text-[#2d2d2d]">Largura da Base <span className="text-xs font-normal text-emerald-700">(digite em metros)</span></label>
                   <div className="flex items-center gap-2">
                     <Input
-                      type="number"
-                      step="0.01"
-                      min={MIN_BASE}
-                      max={MAX_BASE}
-                      value={base === 0 ? '' : base}
+                      type="text"
+                      inputMode="decimal"
+                      value={formatDimensionInput(base)}
                       onChange={(e) => {
-                        const val = parseFloat(e.target.value);
-                        const newBase = isNaN(val) ? 0 : Math.min(Math.max(val, MIN_BASE), MAX_BASE);
+                        const newBase = parseDimensionInput(e.target.value);
                         setBase(newBase);
                         handleSliderChange(newBase);
                       }}
-                      className="w-24 h-8 text-right font-bold text-emerald-700 bg-emerald-50/50"
-                      placeholder="0.00"
+                      aria-label="Digite a largura da base em metros"
+                      className="w-28 h-9 text-right font-bold text-emerald-700 bg-emerald-50 border-emerald-300"
+                      placeholder="Digite ex.: 3,50"
                     />
                     <span className="text-sm font-bold text-slate-700">m</span>
                   </div>
@@ -959,7 +958,7 @@ export default function AFrameSimulator() {
                     handleSliderChange(value[0]);
                   }}
                   min={MIN_BASE}
-                  max={MAX_BASE}
+                  max={Math.max(MAX_BASE, base, 0.01)}
                   step={0.01}
                   className="w-full"
                 />
@@ -969,22 +968,20 @@ export default function AFrameSimulator() {
               {/* Height Slider & Input */}
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-semibold text-[#2d2d2d]">Altura da Cumeeira</label>
+                  <label className="text-sm font-semibold text-[#2d2d2d]">Altura da Cumeeira <span className="text-xs font-normal text-emerald-700">(digite em metros)</span></label>
                   <div className="flex items-center gap-2">
                     <Input
-                      type="number"
-                      step="0.01"
-                      min={MIN_HEIGHT}
-                      max={MAX_HEIGHT}
-                      value={height === 0 ? '' : height}
+                      type="text"
+                      inputMode="decimal"
+                      value={formatDimensionInput(height)}
                       onChange={(e) => {
-                        const val = parseFloat(e.target.value);
-                        const newHeight = isNaN(val) ? 0 : Math.min(Math.max(val, MIN_HEIGHT), MAX_HEIGHT);
+                        const newHeight = parseDimensionInput(e.target.value);
                         setHeight(newHeight);
                         handleSliderChange(newHeight);
                       }}
-                      className="w-24 h-8 text-right font-bold text-emerald-700 bg-emerald-50/50"
-                      placeholder="0.00"
+                      aria-label="Digite a altura da cumeeira em metros"
+                      className="w-28 h-9 text-right font-bold text-emerald-700 bg-emerald-50 border-emerald-300"
+                      placeholder="Digite ex.: 5,00"
                     />
                     <span className="text-sm font-bold text-slate-700">m</span>
                   </div>
@@ -997,7 +994,7 @@ export default function AFrameSimulator() {
                     handleSliderChange(value[0]);
                   }}
                   min={MIN_HEIGHT}
-                  max={MAX_HEIGHT}
+                  max={Math.max(MAX_HEIGHT, height, 0.01)}
                   step={0.01}
                   className="w-full"
                 />
@@ -1007,22 +1004,20 @@ export default function AFrameSimulator() {
               {/* Length Slider & Input */}
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-semibold text-[#2d2d2d]">Comprimento</label>
+                  <label className="text-sm font-semibold text-[#2d2d2d]">Comprimento <span className="text-xs font-normal text-emerald-700">(digite em metros)</span></label>
                   <div className="flex items-center gap-2">
                     <Input
-                      type="number"
-                      step="0.01"
-                      min={MIN_LENGTH}
-                      max={MAX_LENGTH}
-                      value={length === 0 ? '' : length}
+                      type="text"
+                      inputMode="decimal"
+                      value={formatDimensionInput(length)}
                       onChange={(e) => {
-                        const val = parseFloat(e.target.value);
-                        const newLength = isNaN(val) ? 0 : Math.min(Math.max(val, MIN_LENGTH), MAX_LENGTH);
+                        const newLength = parseDimensionInput(e.target.value);
                         setLength(newLength);
                         handleSliderChange(newLength);
                       }}
-                      className="w-24 h-8 text-right font-bold text-emerald-700 bg-emerald-50/50"
-                      placeholder="0.00"
+                      aria-label="Digite o comprimento em metros"
+                      className="w-28 h-9 text-right font-bold text-emerald-700 bg-emerald-50 border-emerald-300"
+                      placeholder="Digite ex.: 6,00"
                     />
                     <span className="text-sm font-bold text-slate-700">m</span>
                   </div>
@@ -1035,7 +1030,7 @@ export default function AFrameSimulator() {
                     handleSliderChange(value[0]);
                   }}
                   min={MIN_LENGTH}
-                  max={MAX_LENGTH}
+                  max={Math.max(MAX_LENGTH, length, 0.01)}
                   step={0.01}
                   className="w-full"
                 />
@@ -1049,24 +1044,22 @@ export default function AFrameSimulator() {
                 </div>
               )}
 
-              {/* Validação de Múltiplos de EPS */}
-              {showResults && (
-                <div className="mb-6">
-                  <EPSMultipleValidation
-                    length={length}
-                    height={height}
-                    onSuggestedDimensionsChange={(newLength, newHeight) => {
-                      setLength(newLength);
-                      setHeight(newHeight);
-                      handleSliderChange(base);
-                      toast.success('Dimensões otimizadas aplicadas!', {
-                        duration: 2000,
-                        position: 'top-center',
-                      });
-                    }}
-                  />
-                </div>
-              )}
+              {/* Validação de Múltiplos de EPS - Permanente no Painel de Dimensões */}
+              <div className="mb-6">
+                <EPSMultipleValidation
+                  length={length}
+                  height={height}
+                  onSuggestedDimensionsChange={(newLength, newHeight) => {
+                    setLength(newLength);
+                    setHeight(newHeight);
+                    handleSliderChange(base);
+                    toast.success('Dimensões otimizadas aplicadas!', {
+                      duration: 2000,
+                      position: 'top-center',
+                    });
+                  }}
+                />
+              </div>
 
               {/* Divider */}
               <div className="border-t border-[#e8e6e1] my-6"></div>
