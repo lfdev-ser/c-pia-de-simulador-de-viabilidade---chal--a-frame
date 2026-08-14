@@ -32,7 +32,8 @@ import {
   deleteSponsor,
   removeSponsorImage,
 } from "./db";
-import { users } from "../drizzle/schema";
+import { users, adCampaigns, adImpressions, adClicks } from "../drizzle/schema";
+import { selectBestAdForSlot } from "./adEngine";
 import { eq, sql } from "drizzle-orm";
 import crypto from "crypto";
 import { hashPassword, verifyPassword } from "./authUtils";
@@ -404,6 +405,112 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         await removeSponsorImage(input.id);
         return { success: true, message: "Imagem do patrocinador removida com sucesso!" } as const;
+      }),
+  }),
+
+  ads: router({
+    getSlotAd: publicProcedure
+      .input(z.object({
+        slotCode: z.string().min(1),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        sessionId: z.string().optional(),
+      }))
+      .query(async ({ input }) => {
+        const ad = await selectBestAdForSlot(input.slotCode, {
+          city: input.city,
+          state: input.state,
+          sessionId: input.sessionId,
+        });
+        return ad;
+      }),
+    recordImpression: publicProcedure
+      .input(z.object({
+        campaignId: z.number().int().positive(),
+        creativeId: z.number().int().positive(),
+        slotCode: z.string(),
+        sessionId: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await getDb();
+        if (!db) return { success: false };
+        
+        await db.insert(adImpressions).values({
+          campaignId: input.campaignId,
+          creativeId: input.creativeId,
+          slotCode: input.slotCode,
+          userId: ctx.user?.id || null,
+          sessionId: input.sessionId || null,
+          userCity: input.city || null,
+          userState: input.state || null,
+        });
+
+        await db.update(adCampaigns)
+          .set({ impressionsCount: sql`impressionsCount + 1` })
+          .where(eq(adCampaigns.id, input.campaignId));
+
+        return { success: true };
+      }),
+    recordClick: publicProcedure
+      .input(z.object({
+        campaignId: z.number().int().positive(),
+        creativeId: z.number().int().positive(),
+        slotCode: z.string(),
+        sessionId: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await getDb();
+        if (!db) return { success: false };
+
+        await db.insert(adClicks).values({
+          campaignId: input.campaignId,
+          creativeId: input.creativeId,
+          slotCode: input.slotCode,
+          userId: ctx.user?.id || null,
+          sessionId: input.sessionId || null,
+        });
+
+        await db.update(adCampaigns)
+          .set({ clicksCount: sql`clicksCount + 1` })
+          .where(eq(adCampaigns.id, input.campaignId));
+
+        return { success: true };
+      }),
+    listCampaigns: adminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      return await db.select().from(adCampaigns);
+    }),
+    createCampaign: adminProcedure
+      .input(z.object({
+        sponsorId: z.number().int().positive(),
+        campaignName: z.string().min(1),
+        planType: z.enum(["CITY", "REGIONAL", "STATE", "NATIONAL"]),
+        targetCountry: z.string().default("Brasil"),
+        targetState: z.string().optional(),
+        targetCity: z.string().optional(),
+        budget: z.string().default("0.00"),
+        impressionLimit: z.number().int().default(10000),
+        priority: z.number().int().default(10),
+      }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("DB indisponível");
+        await db.insert(adCampaigns).values({
+          sponsorId: input.sponsorId,
+          campaignName: input.campaignName,
+          planType: input.planType,
+          targetCountry: input.targetCountry,
+          targetState: input.targetState || null,
+          targetCity: input.targetCity || null,
+          status: "ACTIVE",
+          budget: input.budget,
+          impressionLimit: input.impressionLimit,
+          priority: input.priority,
+        });
+        return { success: true, message: "Campanha criada com sucesso!" };
       }),
   }),
 

@@ -111,3 +111,9 @@
 - [x] Criar o componente `SponsorsSidebar.tsx` em coluna lateral direita fixa de cima a baixo com tamanho padrão.
 - [x] Ajustar o layout principal do simulador para acomodar a coluna lateral direita de patrocinadores em tamanho padronizado de cima a baixo.
 - [x] Remover o comportamento `sticky` da coluna de patrocinadores em `AFrameSimulator.tsx` para que os vários posts de patrocinadores fluam naturalmente de cima a baixo junto com a rolagem da página.
+# Sistema de Anúncios e Patrocínios Geolocalizados (Ad Manager)
+
+- [x] Criar tabelas para Categorias (`ad_categories`), Campanhas (`ad_campaigns`), Criativos (`ad_creatives`), Slots (`ad_slots`), Impressões (`ad_impressions`), Cliques (`ad_clicks`) e Logs de Frequência no esquema Drizzle.
+- [x] Implementar motor de pontuação (Sponsor Score), geolocalização por Nível (City, State, Regional, National), Frequency Capping e rotação ponderada no backend (`server/adEngine.ts` e `server/routers.ts`).
+- [x] Desenvolver o componente de carregamento progressivo (lazy loading) com múltiplos slots na coluna lateral direita (`SponsorsSidebar.tsx`).
+- [x] Criar o painel administrativo de campanhas, criativos, inventário e analytics no dashboard.

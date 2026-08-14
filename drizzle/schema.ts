@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, serial } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -127,3 +127,78 @@ export const sponsors = mysqlTable("sponsors", {
 
 export type Sponsor = typeof sponsors.$inferSelect;
 export type InsertSponsor = typeof sponsors.$inferInsert;
+
+// --- AD MANAGER TABLES (Conforme Relatório Técnico) ---
+
+export const adCategories = mysqlTable("ad_categories", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  slug: varchar("slug", { length: 100 }).notNull().unique(),
+  description: text("description"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const adCampaigns = mysqlTable("ad_campaigns", {
+  id: int("id").autoincrement().primaryKey(),
+  sponsorId: int("sponsorId").notNull(),
+  categoryId: int("categoryId"),
+  campaignName: varchar("campaignName", { length: 255 }).notNull(),
+  planType: varchar("planType", { length: 50 }).notNull().default("CITY"), // CITY, REGIONAL, STATE, NATIONAL
+  targetCountry: varchar("targetCountry", { length: 100 }).default("Brasil").notNull(),
+  targetState: varchar("targetState", { length: 100 }), // ex: Paraná
+  targetCity: varchar("targetCity", { length: 100 }), // ex: Curitiba
+  status: varchar("status", { length: 50 }).notNull().default("PENDING"), // PENDING, ACTIVE, PAUSED, REJECTED, EXPIRED
+  startAt: timestamp("startAt"),
+  endAt: timestamp("endAt"),
+  budget: decimal("budget", { precision: 10, scale: 2 }).default("0.00").notNull(),
+  impressionLimit: int("impressionLimit").default(10000).notNull(),
+  impressionsCount: int("impressionsCount").default(0).notNull(),
+  clicksCount: int("clicksCount").default(0).notNull(),
+  frequencyCapPerDay: int("frequencyCapPerDay").default(5).notNull(),
+  priority: int("priority").default(10).notNull(), // 1 a 100
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
+export const adCreatives = mysqlTable("ad_creatives", {
+  id: int("id").autoincrement().primaryKey(),
+  campaignId: int("campaignId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  imageUrl: text("imageUrl").notNull(),
+  destinationUrl: varchar("destinationUrl", { length: 500 }),
+  ctaText: varchar("ctaText", { length: 50 }).default("Saiba Mais").notNull(),
+  status: varchar("status", { length: 50 }).default("ACTIVE").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const adSlots = mysqlTable("ad_slots", {
+  id: int("id").autoincrement().primaryKey(),
+  slotCode: varchar("slotCode", { length: 100 }).notNull().unique(), // ex: RIGHT_SLOT_001
+  position: int("position").notNull(),
+  page: varchar("page", { length: 100 }).default("simulator").notNull(),
+  status: varchar("status", { length: 50 }).default("ACTIVE").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const adImpressions = mysqlTable("ad_impressions", {
+  id: int("id").autoincrement().primaryKey(),
+  campaignId: int("campaignId").notNull(),
+  creativeId: int("creativeId").notNull(),
+  slotCode: varchar("slotCode", { length: 100 }).notNull(),
+  userId: int("userId"),
+  sessionId: varchar("sessionId", { length: 100 }),
+  userState: varchar("userState", { length: 100 }),
+  userCity: varchar("userCity", { length: 100 }),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});
+
+export const adClicks = mysqlTable("ad_clicks", {
+  id: int("id").autoincrement().primaryKey(),
+  campaignId: int("campaignId").notNull(),
+  creativeId: int("creativeId").notNull(),
+  slotCode: varchar("slotCode", { length: 100 }).notNull(),
+  userId: int("userId"),
+  sessionId: varchar("sessionId", { length: 100 }),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});

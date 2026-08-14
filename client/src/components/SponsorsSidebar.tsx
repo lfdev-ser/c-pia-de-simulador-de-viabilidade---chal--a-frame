@@ -1,104 +1,151 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { trpc } from '@/lib/trpc';
 import { Card, CardContent } from '@/components/ui/card';
-import { ExternalLink, Award, MapPin, Phone, Globe } from 'lucide-react';
+import { ExternalLink, Award, MapPin, Phone, Globe, Loader2 } from 'lucide-react';
 
 export function SponsorsSidebar() {
-  const { data: sponsors = [], isLoading } = trpc.admin.listSponsors.useQuery();
+  // Estado para controlar quantos slots carregar progressivamente (lazy loading conforme o relatório)
+  const [visibleSlots, setVisibleSlots] = useState<string[]>(['RIGHT_SLOT_001', 'RIGHT_SLOT_002']);
+  const [sessionId] = useState(() => `sess_${Math.random().toString(36).substring(2)}`);
 
-  if (isLoading || sponsors.length === 0) {
-    return null;
-  }
+  // Ouvir o evento de scroll para carregar novos slots progressivamente
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.innerHeight + window.scrollY;
+      const threshold = document.documentElement.scrollHeight - 300;
+      if (scrollPosition >= threshold) {
+        // Adicionar novos slots progressivamente se houver menos de 5 carregados
+        setVisibleSlots(prev => {
+          if (prev.length < 5) {
+            const nextIndex = prev.length + 1;
+            return [...prev, `RIGHT_SLOT_00${nextIndex}`];
+          }
+          return prev;
+        });
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <aside className="w-full xl:w-80 flex-shrink-0 space-y-4">
       <div className="bg-gradient-to-r from-emerald-700 to-green-800 text-white p-3 rounded-2xl shadow-sm flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Award className="w-5 h-5" />
-          <h3 className="font-bold text-sm tracking-tight">Parceiros Oficiais</h3>
+          <h3 className="font-bold text-sm tracking-tight">Inventário Publicitário</h3>
         </div>
         <span className="text-[10px] font-semibold bg-white/20 text-white px-2 py-0.5 rounded-full">
-          Patrocínio
+          Patrocinado
         </span>
       </div>
 
       <div className="space-y-4">
-        {sponsors.map((sponsor: any) => {
-          const cardContent = (
-            <Card className="bg-white border-emerald-100 hover:border-emerald-300 hover:shadow-md transition-all duration-200 rounded-2xl overflow-hidden flex flex-col">
-              {sponsor.imageUrl && (
-                <div className="relative h-36 bg-white border-b border-slate-100 flex items-center justify-center p-3">
-                  <img
-                    src={sponsor.imageUrl}
-                    alt={sponsor.title}
-                    className="max-h-full max-w-full object-contain object-center"
-                  />
-                  <div className="absolute top-2 left-2 bg-slate-900/80 backdrop-blur-md text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
-                    {sponsor.name}
-                  </div>
-                </div>
-              )}
-              <CardContent className="p-4 flex-1 flex flex-col justify-between space-y-3">
-                <div>
-                  {!sponsor.imageUrl && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-100 text-slate-800 rounded-full inline-block mb-1.5">
-                      {sponsor.name}
-                    </span>
-                  )}
-                  <h4 className="font-bold text-slate-900 text-sm mb-1 line-clamp-2">{sponsor.title}</h4>
-                  {sponsor.description && (
-                    <p className="text-[11px] text-slate-600 line-clamp-3 leading-relaxed mb-2">{sponsor.description}</p>
-                  )}
-
-                  <div className="space-y-1 pt-2 border-t border-slate-100 text-[11px] text-slate-600">
-                    {sponsor.address && (
-                      <div className="flex items-start gap-1">
-                        <MapPin className="w-3 h-3 text-emerald-700 shrink-0 mt-0.5" />
-                        <span className="line-clamp-1">{sponsor.address}</span>
-                      </div>
-                    )}
-                    {sponsor.phone && (
-                      <div className="flex items-center gap-1">
-                        <Phone className="w-3 h-3 text-emerald-700 shrink-0" />
-                        <span>{sponsor.phone}</span>
-                      </div>
-                    )}
-                    {sponsor.website && (
-                      <div className="flex items-center gap-1">
-                        <Globe className="w-3 h-3 text-emerald-700 shrink-0" />
-                        <span className="truncate text-emerald-700 font-medium">{sponsor.website}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {sponsor.externalLink && (
-                  <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:text-emerald-800 pt-2 border-t border-slate-100">
-                    <span>Acessar parceiro</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          );
-
-          if (sponsor.externalLink) {
-            return (
-              <a
-                key={sponsor.id}
-                href={sponsor.externalLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block group focus:outline-none focus:ring-2 focus:ring-emerald-500 rounded-2xl"
-              >
-                {cardContent}
-              </a>
-            );
-          }
-
-          return <div key={sponsor.id}>{cardContent}</div>;
-        })}
+        {visibleSlots.map((slotCode, index) => (
+          <AdSlotCard key={slotCode} slotCode={slotCode} sessionId={sessionId} priorityIndex={index + 1} />
+        ))}
       </div>
     </aside>
+  );
+}
+
+function AdSlotCard({ slotCode, sessionId, priorityIndex }: { slotCode: string; sessionId: string; priorityIndex: number }) {
+  const utils = trpc.useUtils();
+  const { data: ad, isLoading } = trpc.ads.getSlotAd.useQuery({
+    slotCode,
+    sessionId,
+  });
+
+  const recordImpressionMutation = trpc.ads.recordImpression.useMutation();
+  const recordClickMutation = trpc.ads.recordClick.useMutation();
+
+  useEffect(() => {
+    if (ad && ad.campaignId && ad.creativeId) {
+      recordImpressionMutation.mutate({
+        campaignId: ad.campaignId,
+        creativeId: ad.creativeId,
+        slotCode,
+        sessionId,
+      });
+    }
+  }, [ad?.campaignId]);
+
+  if (isLoading) {
+    return (
+      <Card className="bg-white border-slate-200 rounded-2xl p-6 flex items-center justify-center min-h-[220px]">
+        <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
+      </Card>
+    );
+  }
+
+  if (!ad) {
+    // Fallback para patrocinador padrão caso o ad manager não retorne anúncio ativo
+    return (
+      <Card className="bg-slate-50 border-dashed border-slate-200 rounded-2xl p-5 text-center text-slate-400">
+        <p className="text-xs">Espaço Publicitário Disponível ({slotCode})</p>
+        <p className="text-[10px] text-slate-400 mt-1">Anuncie sua marca aqui</p>
+      </Card>
+    );
+  }
+
+  const handleClick = () => {
+    recordClickMutation.mutate({
+      campaignId: ad.campaignId,
+      creativeId: ad.creativeId,
+      slotCode,
+      sessionId,
+    });
+  };
+
+  return (
+    <Card className="bg-white border-emerald-100 hover:border-emerald-300 hover:shadow-md transition-all duration-200 rounded-2xl overflow-hidden flex flex-col">
+      <div className="relative h-36 bg-white border-b border-slate-100 flex items-center justify-center p-3">
+        <img
+          src={ad.imageUrl}
+          alt={ad.title}
+          className="max-h-full max-w-full object-contain object-center"
+        />
+        <div className="absolute top-2 left-2 bg-slate-900/80 backdrop-blur-md text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
+          Patrocinado • {ad.sponsorName}
+        </div>
+      </div>
+      <CardContent className="p-4 flex-1 flex flex-col justify-between space-y-3">
+        <div>
+          <h4 className="font-bold text-slate-900 text-sm mb-1 line-clamp-2">{ad.title}</h4>
+          {ad.description && (
+            <p className="text-[11px] text-slate-600 line-clamp-3 leading-relaxed mb-2">{ad.description}</p>
+          )}
+
+          <div className="space-y-1 pt-2 border-t border-slate-100 text-[11px] text-slate-600">
+            {ad.sponsorAddress && (
+              <div className="flex items-start gap-1">
+                <MapPin className="w-3 h-3 text-emerald-700 shrink-0 mt-0.5" />
+                <span className="line-clamp-1">{ad.sponsorAddress}</span>
+              </div>
+            )}
+            {ad.sponsorPhone && (
+              <div className="flex items-center gap-1">
+                <Phone className="w-3 h-3 text-emerald-700 shrink-0" />
+                <span>{ad.sponsorPhone}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {ad.destinationUrl && (
+          <a
+            href={ad.destinationUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={handleClick}
+            className="flex items-center justify-center gap-1.5 w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition-colors"
+          >
+            <span>{ad.ctaText}</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        )}
+      </CardContent>
+    </Card>
   );
 }
