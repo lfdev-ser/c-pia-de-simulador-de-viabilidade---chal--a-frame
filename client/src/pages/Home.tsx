@@ -4,6 +4,8 @@ import { trpc } from '@/lib/trpc';
 import AFrameSimulator from '@/components/AFrameSimulator';
 import AFrameLogo from '@/components/AFrameLogo';
 import { AdminDashboardPage } from '@/components/AdminDashboardPage';
+import { IcfWorksGallery } from '@/components/IcfWorksGallery';
+import { Layers } from 'lucide-react';
 import { getPasswordInputType } from '@/lib/passwordVisibility';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,7 +47,7 @@ export default function Home() {
   });
 
   const [debugVerificationToken, setDebugVerificationToken] = useState<string | null>(null);
-  const [currentView, setCurrentView] = useState<'simulator' | 'admin'>('simulator');
+  const [currentView, setCurrentView] = useState<'simulator' | 'admin' | 'gallery'>('simulator');
 
   const registerMutation = trpc.authEmail.register.useMutation({
     onSuccess: (data: any) => {
@@ -87,7 +89,7 @@ export default function Home() {
     }
   });
 
-  // Se o usuário já estiver logado e com e-mail confirmado, exibe o simulador ou o painel admin amplo
+  // Se o usuário já estiver logado e com e-mail confirmado, exibe o simulador, a galeria ou o painel admin amplo
   if (user && user.emailVerified === 1) {
     if (user.role === 'admin' && currentView === 'admin') {
       return (
@@ -98,14 +100,63 @@ export default function Home() {
       );
     }
 
+    if (currentView === 'gallery') {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-[#faf8f3] via-[#f5f3f0] to-[#faf8f3] flex flex-col">
+          <div className="bg-white border-b border-[#e8e6e1] px-6 py-3 flex justify-between items-center shadow-xs sticky top-0 z-30">
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentView('simulator')}>
+              <AFrameLogo className="w-8 h-8 shrink-0" />
+              <span className="font-bold text-lg text-[#2d2d2d]">Simulador Chalé A-frame ICF</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setCurrentView('simulator')}
+                className="font-semibold text-emerald-700 hover:bg-emerald-50"
+              >
+                Voltar ao Simulador
+              </Button>
+              {user.role === 'admin' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentView('admin')}
+                  className="gap-2 border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100 font-semibold shadow-xs"
+                >
+                  <ShieldCheck className="w-4 h-4" /> Painel Admin
+                </Button>
+              )}
+              <Button variant="outline" size="sm" onClick={() => logout()} className="gap-2">
+                <LogOut className="w-4 h-4" /> Sair
+              </Button>
+            </div>
+          </div>
+          <div className="flex-1">
+            <IcfWorksGallery isAdmin={user.role === 'admin'} />
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#faf8f3] via-[#f5f3f0] to-[#faf8f3]">
         <div className="bg-white border-b border-[#e8e6e1] px-6 py-3 flex justify-between items-center shadow-xs">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentView('simulator')}>
             <AFrameLogo className="w-8 h-8 shrink-0" />
             <span className="font-bold text-lg text-[#2d2d2d]">Simulador Chalé A-frame ICF</span>
           </div>
           <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentView('gallery')}
+              className="gap-2 border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold shadow-xs"
+            >
+              <Layers className="w-4 h-4" />
+              <span className="hidden sm:inline">Obras ICF & Galeria</span>
+              <span className="sm:hidden">Galeria</span>
+            </Button>
             <span className="text-sm text-gray-600 hidden md:inline">Olá, <b>{user.name || user.email}</b></span>
             {user.role === 'admin' && (
               <Button

@@ -65,4 +65,12 @@
 - [x] Validar e refinar o componente `AdminPanel.tsx` para garantir exclusão, alteração de cargo e estatísticas gerais.
 - [x] Exibir e integrar explicitamente o botão “Painel Admin” no cabeçalho da tela autenticada.
 - [x] Transformar o modal administrativo em uma página ampla dedicada com layout de painel e navegação completa.
+- [x] Adicionar funcionalidade para o usuário trocar seu próprio e-mail com segurança.
+- [x] Adicionar funcionalidade para o administrador excluir usuários cadastrados com confirmação e proteção anti-autoexclusão.
+
+# Obras ICF & Galeria
+
+- [x] Criar tabela de banco de dados `icf_works` para mídias (vídeos de chalés, fotos de blocos EPS, folders e catálogos).
+- [x] Implementar rotas tRPC e helpers de banco para gerenciar e listar itens da galeria.
+- [x] Desenvolver a aba/seção visual responsiva para exibição de Obras ICF & Galeria no sistema.
 

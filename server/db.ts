@@ -3,6 +3,8 @@ import { and, desc, eq } from "drizzle-orm";
 import {
   InsertUser,
   comparisonHistory,
+  icfWorks,
+  InsertIcfWork,
   materialPrices,
   simulations,
   userSettings,
@@ -216,4 +218,47 @@ export async function updateUserRole(userId: number, role: 'user' | 'admin') {
   const db = await getDb();
   if (!db) throw new Error("Banco de dados indisponível");
   await db.update(users).set({ role }).where(eq(users.id, userId));
+}
+
+export async function updateUserEmail(userId: number, newEmail: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível");
+  // Verifica se o e-mail já existe
+  const existing = await getUserByEmail(newEmail);
+  if (existing && existing.id !== userId) {
+    throw new Error("Este e-mail já está em uso por outro usuário.");
+  }
+  await db.update(users).set({ email: newEmail }).where(eq(users.id, userId));
+}
+
+export async function deleteUser(userId: number, adminUserId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível");
+  if (userId === adminUserId) {
+    throw new Error("Você não pode excluir sua própria conta de administrador.");
+  }
+  // Exclui simulações e dados dependentes se necessário, ou apenas o usuário
+  await db.delete(simulations).where(eq(simulations.userId, userId));
+  await db.delete(comparisonHistory).where(eq(comparisonHistory.userId, userId));
+  await db.delete(materialPrices).where(eq(materialPrices.userId, userId));
+  await db.delete(userSettings).where(eq(userSettings.userId, userId));
+  await db.delete(users).where(eq(users.id, userId));
+}
+
+export async function listIcfWorks() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(icfWorks).orderBy(desc(icfWorks.createdAt));
+}
+
+export async function createIcfWork(work: InsertIcfWork) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível");
+  await db.insert(icfWorks).values(work);
+}
+
+export async function deleteIcfWork(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível");
+  await db.delete(icfWorks).where(eq(icfWorks.id, id));
 }

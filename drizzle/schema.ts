@@ -90,3 +90,19 @@ export const userSettings = mysqlTable("user_settings", {
 
 export type UserSettings = typeof userSettings.$inferSelect;
 export type InsertUserSettings = typeof userSettings.$inferInsert;
+
+/**
+ * Obras ICF & Galeria (vídeos, fotos de blocos EPS, folders e catálogos)
+ */
+export const icfWorks = mysqlTable("icf_works", {
+  id: int("id").autoincrement().primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 50 }).notNull(), // 'chalet' | 'blocks' | 'folder' | 'video'
+  mediaUrl: text("mediaUrl").notNull(),
+  thumbnailUrl: text("thumbnailUrl"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type IcfWork = typeof icfWorks.$inferSelect;
+export type InsertIcfWork = typeof icfWorks.$inferInsert;

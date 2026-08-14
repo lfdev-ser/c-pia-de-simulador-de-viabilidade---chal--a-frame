@@ -17,8 +17,13 @@ import {
   listUserMaterialPrices,
   listUserSimulations,
   replaceUserMaterialPrices,
+  updateUserEmail,
+  deleteUser,
   updateUserRole,
   upsertUserSettings,
+  listIcfWorks,
+  createIcfWork,
+  deleteIcfWork,
 } from "./db";
 import { users } from "../drizzle/schema";
 import { eq, sql } from "drizzle-orm";
@@ -230,6 +235,39 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         await updateUserRole(input.userId, input.role);
         return { success: true } as const;
+      }),
+    updateEmail: protectedProcedure
+      .input(z.object({ newEmail: z.string().email() }))
+      .mutation(async ({ input, ctx }) => {
+        await updateUserEmail(ctx.user.id, input.newEmail);
+        return { success: true, message: "E-mail atualizado com sucesso!" } as const;
+      }),
+    deleteUser: adminProcedure
+      .input(z.object({ userId: z.number().int().positive() }))
+      .mutation(async ({ input, ctx }) => {
+        await deleteUser(input.userId, ctx.user.id);
+        return { success: true, message: "Usuário excluído com sucesso!" } as const;
+      }),
+    listWorks: publicProcedure.query(async () => {
+      return await listIcfWorks();
+    }),
+    createWork: adminProcedure
+      .input(z.object({
+        title: z.string().min(1),
+        description: z.string().optional(),
+        category: z.enum(['chalet', 'blocks', 'folder', 'video']),
+        mediaUrl: z.string().url(),
+        thumbnailUrl: z.string().url().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        await createIcfWork(input);
+        return { success: true, message: "Obra/Mídia adicionada com sucesso!" } as const;
+      }),
+    deleteWork: adminProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        await deleteIcfWork(input.id);
+        return { success: true, message: "Item removido com sucesso!" } as const;
       }),
   }),
 
