@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { ArrowRight, Ruler, Home } from 'lucide-react';
 import { toast } from 'sonner';
@@ -927,11 +928,28 @@ export default function AFrameSimulator() {
                 }} />
               </div>
               
-              {/* Base Slider */}
+              {/* Base Slider & Input */}
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-semibold text-[#2d2d2d]">Largura da Base</label>
-                  <span className="text-lg font-bold text-[#15803d]">{base.toFixed(2)} m</span>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min={MIN_BASE}
+                      max={MAX_BASE}
+                      value={base === 0 ? '' : base}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        const newBase = isNaN(val) ? 0 : Math.min(Math.max(val, MIN_BASE), MAX_BASE);
+                        setBase(newBase);
+                        handleSliderChange(newBase);
+                      }}
+                      className="w-24 h-8 text-right font-bold text-emerald-700 bg-emerald-50/50"
+                      placeholder="0.00"
+                    />
+                    <span className="text-sm font-bold text-slate-700">m</span>
+                  </div>
                 </div>
                 <Slider
                   key={`base-${resetTrigger}`}
@@ -948,11 +966,28 @@ export default function AFrameSimulator() {
                 <p className="text-xs text-[#6b6b6b] mt-2">Recomendado: 4,00 m</p>
               </div>
 
-              {/* Height Slider */}
+              {/* Height Slider & Input */}
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-semibold text-[#2d2d2d]">Altura da Cumeeira</label>
-                  <span className="text-lg font-bold text-[#15803d]">{height.toFixed(2)} m</span>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min={MIN_HEIGHT}
+                      max={MAX_HEIGHT}
+                      value={height === 0 ? '' : height}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        const newHeight = isNaN(val) ? 0 : Math.min(Math.max(val, MIN_HEIGHT), MAX_HEIGHT);
+                        setHeight(newHeight);
+                        handleSliderChange(newHeight);
+                      }}
+                      className="w-24 h-8 text-right font-bold text-emerald-700 bg-emerald-50/50"
+                      placeholder="0.00"
+                    />
+                    <span className="text-sm font-bold text-slate-700">m</span>
+                  </div>
                 </div>
                 <Slider
                   key={`height-${resetTrigger}`}
@@ -969,11 +1004,28 @@ export default function AFrameSimulator() {
                 <p className="text-xs text-[#6b6b6b] mt-2">Recomendado: 5,00 m</p>
               </div>
 
-              {/* Length Slider */}
+              {/* Length Slider & Input */}
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-semibold text-[#2d2d2d]">Comprimento</label>
-                  <span className="text-lg font-bold text-[#15803d]">{length.toFixed(2)} m</span>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min={MIN_LENGTH}
+                      max={MAX_LENGTH}
+                      value={length === 0 ? '' : length}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        const newLength = isNaN(val) ? 0 : Math.min(Math.max(val, MIN_LENGTH), MAX_LENGTH);
+                        setLength(newLength);
+                        handleSliderChange(newLength);
+                      }}
+                      className="w-24 h-8 text-right font-bold text-emerald-700 bg-emerald-50/50"
+                      placeholder="0.00"
+                    />
+                    <span className="text-sm font-bold text-slate-700">m</span>
+                  </div>
                 </div>
                 <Slider
                   key={`length-${resetTrigger}`}

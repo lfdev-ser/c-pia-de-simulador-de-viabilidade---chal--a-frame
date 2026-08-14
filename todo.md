@@ -78,6 +78,11 @@
 - [x] Adicionar funcionalidade para renomear e excluir itens diretamente na galeria administrativa.
 - [x] Implementar visualizador em tela cheia (lightbox) para fotos e vídeos ao clicar.
 
+# Simulador de Dimensões
+
+- [x] Incluir inputs numéricos manuais sincronizados em tempo real com as barras de Largura da Base, Altura da Cumeeira e Comprimento.
+
+
 
 
 
