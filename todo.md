@@ -117,3 +117,9 @@
 - [x] Implementar motor de pontuação (Sponsor Score), geolocalização por Nível (City, State, Regional, National), Frequency Capping e rotação ponderada no backend (`server/adEngine.ts` e `server/routers.ts`).
 - [x] Desenvolver o componente de carregamento progressivo (lazy loading) com múltiplos slots na coluna lateral direita (`SponsorsSidebar.tsx`).
 - [x] Criar o painel administrativo de campanhas, criativos, inventário e analytics no dashboard.
+# Auditoria e Prova do Ad Manager
+
+- [ ] Consolidar schema oficial com logs de frequência e migração Drizzle sincronizada.
+- [ ] Expandir o motor (`server/adEngine.ts`) para suportar planos Regionais com múltiplas cidades, state-level, national fallback, frequency capping rigoroso por sessão/dia, rotação ponderada e pontuação (Sponsor Score).
+- [ ] Criar testes unitários e de integração abrangentes (`server/adManager.test.ts`) cobrindo 100% dos cenários de geolocalização e pontuação.
+- [ ] Apresentar relatório formal de auditoria com tabela de conformidade, evidências e resultados dos testes.

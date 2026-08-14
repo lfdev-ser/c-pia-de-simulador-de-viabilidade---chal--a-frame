@@ -202,3 +202,11 @@ export const adClicks = mysqlTable("ad_clicks", {
   sessionId: varchar("sessionId", { length: 100 }),
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 });
+
+export const adFrequencyLogs = mysqlTable("ad_frequency_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  campaignId: int("campaignId").notNull(),
+  sessionId: varchar("sessionId", { length: 100 }).notNull(),
+  slotCode: varchar("slotCode", { length: 100 }).notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});

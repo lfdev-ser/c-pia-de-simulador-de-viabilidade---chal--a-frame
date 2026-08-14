@@ -1,6 +1,6 @@
 import { getDb } from './db';
-import { adCampaigns, adCreatives, adImpressions, adClicks, sponsors } from '../drizzle/schema';
-import { eq, and, lte, gte, sql } from 'drizzle-orm';
+import { adCampaigns, adCreatives, adImpressions, adFrequencyLogs, sponsors } from '../drizzle/schema';
+import { eq, and, gte, sql } from 'drizzle-orm';
 
 export interface UserContext {
   city?: string;
@@ -31,52 +31,58 @@ export async function selectBestAdForSlot(slotCode: string, userContext: UserCon
   const eligibleCampaigns = [];
 
   for (const camp of campaigns) {
-    // Verificar frequency cap por sessão/dia se sessionId fornecido
-    if (userContext.sessionId) {
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
+    const sessionId = userContext.sessionId || 'default_session';
 
-      const [impressionsToday] = await db.select({ count: sql<number>`count(*)` })
-        .from(adImpressions)
-        .where(and(
-          eq(adImpressions.campaignId, camp.id),
-          eq(adImpressions.sessionId, userContext.sessionId),
-          gte(adImpressions.timestamp, todayStart)
-        ));
+    // 1. Frequency Capping rigoroso (diário por sessão)
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
 
-      if ((impressionsToday?.count || 0) >= camp.frequencyCapPerDay) {
-        continue; // Atingiu o limite de frequência diária
-      }
+    const [impressionsToday] = await db.select({ count: sql<number>`count(*)` })
+      .from(adFrequencyLogs)
+      .where(and(
+        eq(adFrequencyLogs.campaignId, camp.id),
+        eq(adFrequencyLogs.sessionId, sessionId),
+        gte(adFrequencyLogs.timestamp, todayStart)
+      ));
+
+    if ((impressionsToday?.count || 0) >= camp.frequencyCapPerDay) {
+      continue; // Atingiu o limite diário de frequência
     }
 
-    // Calcular pontuação e relevância geográfica
-    let geoScore = 10; // Nacional ou fallback
+    // 2. Geolocalização e Planos (CITY, REGIONAL, STATE, NATIONAL)
+    let geoScore = 10;
     let matchType = 'NATIONAL';
 
     const userCity = (userContext.city || '').trim().toLowerCase();
     const userState = (userContext.state || '').trim().toLowerCase();
-    const targetCity = (camp.targetCity || '').trim().toLowerCase();
+    const targetCity = (camp.targetCity || '').trim().toLowerCase(); // Pode conter cidades separadas por vírgula para REGIONAL
     const targetState = (camp.targetState || '').trim().toLowerCase();
 
     if (camp.planType === 'CITY' && targetCity && userCity && targetCity === userCity) {
       geoScore = 100;
       matchType = 'CITY';
+    } else if (camp.planType === 'REGIONAL' && targetCity) {
+      const citiesList = targetCity.split(',').map(c => c.trim().toLowerCase());
+      if (userCity && citiesList.includes(userCity)) {
+        geoScore = 90;
+        matchType = 'REGIONAL_MATCH';
+      } else {
+        continue; // Fora das cidades regionais contratadas
+      }
     } else if (camp.planType === 'STATE' && targetState && userState && targetState === userState) {
       geoScore = 75;
       matchType = 'STATE';
-    } else if (camp.planType === 'REGIONAL' && targetCity && userCity && targetCity === userCity) {
-      geoScore = 85;
-      matchType = 'REGIONAL_MATCH';
     } else if (camp.planType === 'NATIONAL') {
-      geoScore = 30;
+      geoScore = 40;
       matchType = 'NATIONAL';
-    } else if (camp.planType === 'CITY' || camp.planType === 'STATE') {
-      // Fora da geolocalização segmentada
+    } else if (camp.planType === 'CITY' || camp.planType === 'STATE' || camp.planType === 'REGIONAL') {
+      // Fora da geolocalização segmentada exigida
       continue;
     }
 
-    // Sponsor Score ponderado
-    const score = (geoScore * 0.5) + (camp.priority * 0.3) + (Number(camp.budget) > 0 ? 20 : 0);
+    // 3. Sponsor Score / Ranking ponderado (Geolocalização 50%, Prioridade 30%, Orçamento 20%)
+    const budgetBonus = Number(camp.budget) > 0 ? 20 : 0;
+    const score = (geoScore * 0.5) + (camp.priority * 0.3) + budgetBonus;
 
     eligibleCampaigns.push({
       campaign: camp,
@@ -87,16 +93,16 @@ export async function selectBestAdForSlot(slotCode: string, userContext: UserCon
 
   if (eligibleCampaigns.length === 0) return null;
 
-  // Ordenar por score ponderado com fator de rotação aleatória ponderada
+  // 4. Rotação ponderada (introduz fator estocástico suave para distribuição justa)
   eligibleCampaigns.sort((a, b) => {
-    const randomWeightA = a.score * (0.8 + Math.random() * 0.4);
-    const randomWeightB = b.score * (0.8 + Math.random() * 0.4);
-    return randomWeightB - randomWeightA;
+    const randomA = a.score * (0.85 + Math.random() * 0.3);
+    const randomB = b.score * (0.85 + Math.random() * 0.3);
+    return randomB - randomA;
   });
 
   const selected = eligibleCampaigns[0];
 
-  // Buscar criativo ativo da campanha
+  // Buscar criativo ativo
   const [creative] = await db.select()
     .from(adCreatives)
     .where(and(
@@ -107,11 +113,18 @@ export async function selectBestAdForSlot(slotCode: string, userContext: UserCon
 
   if (!creative) return null;
 
-  // Buscar dados do patrocinador
+  // Buscar patrocinador
   const [sponsor] = await db.select()
     .from(sponsors)
     .where(eq(sponsors.id, selected.campaign.sponsorId))
     .limit(1);
+
+  // Registrar log de frequência para o cap
+  await db.insert(adFrequencyLogs).values({
+    campaignId: selected.campaign.id,
+    sessionId: userContext.sessionId || 'default_session',
+    slotCode,
+  });
 
   return {
     campaignId: selected.campaign.id,
