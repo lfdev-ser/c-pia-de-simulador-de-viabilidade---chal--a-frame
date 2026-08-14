@@ -129,3 +129,6 @@
 - [x] Garantir rota tRPC segura para o administrador cadastrar ou alterar sua senha com hash criptográfico (scrypt).
 - [x] Incluir interface de redefinição de senha protegida no painel administrativo e na tela de login/recuperação.
 - [x] Implementar fluxo público de 'Esqueci / Criei minha senha' e redefinição por token na tela de login (`Home.tsx`) para contas existentes sem senha cadastrada.
+# Correção de Sessão Pós-Login
+
+- [x] Garantir invalidação imediata da query de autenticação e recarregamento da página ou estado ao receber sucesso no login.

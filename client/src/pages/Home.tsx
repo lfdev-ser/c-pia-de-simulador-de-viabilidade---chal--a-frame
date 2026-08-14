@@ -103,7 +103,9 @@ export default function Home() {
         toast.error('Por favor, confirme seu e-mail antes de acessar.');
       } else {
         toast.success('Login realizado com sucesso!');
-        utils.auth.me.invalidate();
+        utils.auth.me.invalidate().then(() => {
+          window.location.href = '/';
+        });
       }
     },
     onError: (err: any) => {
