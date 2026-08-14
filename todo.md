@@ -135,3 +135,6 @@
 # Correção de Persistência de Sessão e Cookies
 
 - [x] Auditar a geração do cookie no backend e os atributos SameSite/Secure/Domain para garantir persistência correta entre redirecionamentos. Registrado middleware `cookie-parser` em `server/_core/index.ts` para que `req.cookies` leia o cookie `userId` e autorize a sessão pós-login.
+# Correção de Imagens sem URL
+
+- [ ] Impedir que componentes renderizem `<img>` com `src=""` e exibir a imagem somente quando houver URL válida.

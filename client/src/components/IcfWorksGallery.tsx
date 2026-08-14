@@ -331,22 +331,28 @@ export function IcfWorksGallery({ isAdmin }: IcfWorksGalleryProps) {
         </div>
       ) : filteredWorks.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredWorks.map((item: any) => (
-            <Card key={item.id} className="bg-white border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col">
-              <div 
-                className="relative aspect-video bg-slate-100 flex items-center justify-center overflow-hidden cursor-pointer group"
-                onClick={() => setLightboxItem(item)}
-              >
-                {item.category === 'video' ? (
-                  <video src={item.mediaUrl} className="w-full h-full object-cover bg-black" />
-                ) : item.category === 'folder' ? (
-                  <div className="w-full h-full bg-slate-100 flex flex-col items-center justify-center text-slate-700 p-4 border-b">
-                    <FileText className="w-12 h-12 text-emerald-600 mb-2" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">PDF / Folder</span>
-                  </div>
-                ) : (
-                  <img src={item.mediaUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                )}
+          {filteredWorks.map((item: any) => {
+            const mediaUrl = typeof item.mediaUrl === 'string' && item.mediaUrl.trim().length > 0
+              ? item.mediaUrl.trim()
+              : null;
+            return (
+              <Card key={item.id} className="bg-white border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col">
+                <div 
+                  className="relative aspect-video bg-slate-100 flex items-center justify-center overflow-hidden cursor-pointer group"
+                  onClick={() => setLightboxItem(item)}
+                >
+                  {item.category === 'video' && mediaUrl ? (
+                    <video src={mediaUrl} className="w-full h-full object-cover bg-black" />
+                  ) : item.category === 'folder' ? (
+                    <div className="w-full h-full bg-slate-100 flex flex-col items-center justify-center text-slate-700 p-4 border-b">
+                      <FileText className="w-12 h-12 text-emerald-600 mb-2" />
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-500">PDF / Folder</span>
+                    </div>
+                  ) : mediaUrl ? (
+                    <img src={mediaUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  ) : (
+                    <div className="text-xs font-semibold text-slate-400">Arquivo sem imagem</div>
+                  )}
 
                 {/* Hover overlay for zoom */}
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-2 font-bold text-xs">
@@ -400,7 +406,8 @@ export function IcfWorksGallery({ isAdmin }: IcfWorksGalleryProps) {
                 </div>
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <Card className="bg-white border-dashed border-2 border-slate-200 rounded-2xl p-12 text-center space-y-3">
@@ -424,18 +431,18 @@ export function IcfWorksGallery({ isAdmin }: IcfWorksGalleryProps) {
 
           <div className="max-w-5xl w-full max-h-[80vh] flex flex-col items-center justify-center">
             {lightboxItem.category === 'video' ? (
-              <video src={lightboxItem.mediaUrl} controls autoPlay className="max-w-full max-h-[70vh] rounded-lg shadow-2xl bg-black" />
+              <video src={lightboxItem.mediaUrl || undefined} controls autoPlay className="max-w-full max-h-[70vh] rounded-lg shadow-2xl bg-black" />
             ) : lightboxItem.category === 'folder' ? (
               <div className="bg-white p-12 rounded-xl text-center space-y-4 max-w-md">
                 <FileText className="w-16 h-16 text-emerald-600 mx-auto" />
                 <h3 className="font-bold text-xl text-slate-900">{lightboxItem.title}</h3>
                 <p className="text-sm text-slate-600">{lightboxItem.description || 'Documento PDF em formato de folder.'}</p>
-                <a href={lightboxItem.mediaUrl} target="_blank" rel="noopener noreferrer" className="inline-block bg-emerald-600 text-white font-bold px-6 py-2.5 rounded-lg shadow-md hover:bg-emerald-700">
+                <a href={lightboxItem.mediaUrl || undefined} target="_blank" rel="noopener noreferrer" className="inline-block bg-emerald-600 text-white font-bold px-6 py-2.5 rounded-lg shadow-md hover:bg-emerald-700">
                   Baixar / Abrir PDF em Nova Aba
                 </a>
               </div>
             ) : (
-              <img src={lightboxItem.mediaUrl} alt={lightboxItem.title} className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-2xl" />
+              <img src={lightboxItem.mediaUrl || undefined} alt={lightboxItem.title} className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-2xl" />
             )}
 
             <div className="mt-4 text-center text-white space-y-1">

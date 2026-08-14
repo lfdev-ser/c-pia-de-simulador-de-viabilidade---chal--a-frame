@@ -29,14 +29,23 @@ export function SponsorsCarousel() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {sponsors.map((sponsor: any) => {
+          const imageUrl = typeof sponsor.imageUrl === 'string' && sponsor.imageUrl.trim().length > 0
+            ? sponsor.imageUrl.trim()
+            : null;
           const content = (
             <Card className="h-full bg-white border-emerald-100 hover:shadow-md hover:border-emerald-300 transition-all duration-200 rounded-2xl overflow-hidden flex flex-col">
               <div className="relative h-48 bg-white border-b border-slate-100 overflow-hidden flex items-center justify-center p-4">
-                <img
-                  src={sponsor.imageUrl}
-                  alt={sponsor.title}
-                  className="max-h-full max-w-full object-contain object-center transition-transform duration-300 hover:scale-105"
-                />
+                {imageUrl ? (
+                  <img
+                    src={imageUrl}
+                    alt={sponsor.title}
+                    className="max-h-full max-w-full object-contain object-center transition-transform duration-300 hover:scale-105"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-slate-400">
+                    Imagem não cadastrada
+                  </div>
+                )}
                 <div className="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
                   {sponsor.name}
                 </div>

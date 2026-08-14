@@ -98,14 +98,24 @@ function AdSlotCard({ slotCode, sessionId, priorityIndex }: { slotCode: string; 
     });
   };
 
+  const imageUrl = typeof ad.imageUrl === 'string' && ad.imageUrl.trim().length > 0
+    ? ad.imageUrl.trim()
+    : null;
+
   return (
     <Card className="bg-white border-emerald-100 hover:border-emerald-300 hover:shadow-md transition-all duration-200 rounded-2xl overflow-hidden flex flex-col">
       <div className="relative h-36 bg-white border-b border-slate-100 flex items-center justify-center p-3">
-        <img
-          src={ad.imageUrl}
-          alt={ad.title}
-          className="max-h-full max-w-full object-contain object-center"
-        />
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={ad.title}
+            className="max-h-full max-w-full object-contain object-center"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-slate-400">
+            Imagem não cadastrada
+          </div>
+        )}
         <div className="absolute top-2 left-2 bg-slate-900/80 backdrop-blur-md text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
           Patrocinado • {ad.sponsorName}
         </div>
