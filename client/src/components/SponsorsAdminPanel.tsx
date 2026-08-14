@@ -65,6 +65,17 @@ export function SponsorsAdminPanel() {
     },
   });
 
+  const removeImageMutation = trpc.admin.removeSponsorImage.useMutation({
+    onSuccess: (res) => {
+      toast.success(res.message);
+      utils.admin.listAllSponsors.invalidate();
+      utils.admin.listSponsors.invalidate();
+    },
+    onError: (err) => {
+      toast.error(`Erro ao remover imagem: ${err.message}`);
+    },
+  });
+
   const resetForm = () => {
     setIsAdding(false);
     setEditingId(null);
@@ -324,8 +335,26 @@ export function SponsorsAdminPanel() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {sponsors.map((sponsor: any) => (
               <div key={sponsor.id} className="flex gap-4 p-4 bg-slate-50 border border-slate-200 rounded-2xl items-center">
-                <div className="w-24 h-24 rounded-xl bg-white border border-slate-200 overflow-hidden flex-shrink-0 flex items-center justify-center p-2 shadow-xs">
-                  <img src={sponsor.imageUrl} alt={sponsor.title} className="w-full h-full object-contain object-center" />
+                <div className="relative w-24 h-24 rounded-xl bg-white border border-slate-200 overflow-hidden flex-shrink-0 flex items-center justify-center p-2 shadow-xs group">
+                  {sponsor.imageUrl ? (
+                    <>
+                      <img src={sponsor.imageUrl} alt={sponsor.title} className="w-full h-full object-contain object-center" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm(`Remover a imagem de ${sponsor.name}?`)) {
+                            removeImageMutation.mutate({ id: sponsor.id });
+                          }
+                        }}
+                        className="absolute inset-0 bg-slate-900/60 text-white opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-[10px] font-bold"
+                        title="Remover imagem"
+                      >
+                        <Trash2 className="w-4 h-4 mb-0.5" /> Excluir Imagem
+                      </button>
+                    </>
+                  ) : (
+                    <span className="text-[10px] text-slate-400 font-medium text-center">Sem Imagem</span>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">

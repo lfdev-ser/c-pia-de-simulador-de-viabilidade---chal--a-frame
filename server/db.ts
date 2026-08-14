@@ -344,3 +344,9 @@ export async function deleteSponsor(id: number) {
   if (!db) throw new Error("Banco de dados indisponível");
   await db.delete(sponsors).where(eq(sponsors.id, id));
 }
+
+export async function removeSponsorImage(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível");
+  await db.update(sponsors).set({ imageUrl: "" }).where(eq(sponsors.id, id));
+}

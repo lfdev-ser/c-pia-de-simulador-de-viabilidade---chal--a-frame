@@ -30,6 +30,7 @@ import {
   createSponsor,
   updateSponsor,
   deleteSponsor,
+  removeSponsorImage,
 } from "./db";
 import { users } from "../drizzle/schema";
 import { eq, sql } from "drizzle-orm";
@@ -397,6 +398,12 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         await deleteSponsor(input.id);
         return { success: true, message: "Patrocinador removido com sucesso!" } as const;
+      }),
+    removeSponsorImage: adminProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        await removeSponsorImage(input.id);
+        return { success: true, message: "Imagem do patrocinador removida com sucesso!" } as const;
       }),
   }),
 

@@ -25,6 +25,7 @@ import { EPSMultipleValidation } from './EPSMultipleValidation';
 import { EPSBlockVisualization } from './EPSBlockVisualization';
 import { ComparisonHistory } from './ComparisonHistory';
 import { SponsorsCarousel } from './SponsorsCarousel';
+import { SponsorsSidebar } from './SponsorsSidebar';
 import { formatDimensionInput, parseDimensionInput } from '@/lib/dimensionInput';
 import { saveComparison } from '@/lib/comparisonHistory';
 import { ComparisonRecord } from '@/lib/comparisonHistory';
@@ -820,7 +821,9 @@ export default function AFrameSimulator() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#faf8f3] via-[#f5f3f0] to-[#faf8f3] py-12 px-4">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-[1600px] mx-auto flex flex-col xl:flex-row gap-8">
+        {/* Conteúdo Principal do Simulador */}
+        <div className="flex-1 min-w-0">
         {/* Header */}
         <div className="mb-12 text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
@@ -1517,9 +1520,6 @@ export default function AFrameSimulator() {
           </div>
         )}
 
-        {/* Patrocinadores Oficiais */}
-        <SponsorsCarousel />
-
         {/* Comparador Modal */}
         <ComparadorSimulacoes
           open={showComparador}
@@ -1605,6 +1605,14 @@ export default function AFrameSimulator() {
             toast.info('Comparação carregada do histórico');
           }}
         />
+        </div>
+
+        {/* Coluna Lateral Direita de Patrocinadores (de cima até o final) */}
+        <div className="xl:w-80 shrink-0">
+          <div className="sticky top-6">
+            <SponsorsSidebar />
+          </div>
+        </div>
       </div>
     </div>
   );

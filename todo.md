@@ -102,7 +102,11 @@
 - [x] Adicionar procedimentos tRPC para listar, criar, atualizar e excluir posts de patrocinadores (protegidos para administradores).
 - [x] Desenvolver a interface administrativa no painel gerencial para gerenciar os patrocinadores com upload direto de imagens.
 - [x] Criar o componente público de exibição de patrocinadores em destaque no site e no simulador.
-- [ ] Adicionar colunas `address`, `website` e `phone` na tabela `sponsors` e atualizar o esquema Drizzle.
-- [ ] Atualizar os procedimentos tRPC e rotas de criação/atualização de sponsors para suportar endereço, site e telefone.
-- [ ] Ajustar o CSS e o container de imagem dos patrocinadores (`object-contain bg-white`) para exibir corretamente qualquer tamanho de logo ou banner sem cortes.
-- [ ] Atualizar `SponsorsAdminPanel.tsx` e `SponsorsCarousel.tsx` para incluir os novos campos de contato.
+- [x] Adicionar colunas `address`, `website` e `phone` na tabela `sponsors` e atualizar o esquema Drizzle.
+- [x] Atualizar os procedimentos tRPC e rotas de criação/atualização de sponsors para suportar endereço, site e telefone.
+- [x] Ajustar o CSS e o container de imagem dos patrocinadores (`object-contain bg-white`) para exibir corretamente qualquer tamanho de logo ou banner sem cortes.
+- [x] Atualizar `SponsorsAdminPanel.tsx` e `SponsorsCarousel.tsx` para incluir os novos campos de contato.
+- [x] Adicionar rota tRPC administrativa `removeSponsorImage` para limpar a URL da imagem de um patrocinador.
+- [x] Atualizar `SponsorsAdminPanel.tsx` com o botão exclusivo para o administrador excluir a imagem do patrocinador.
+- [x] Criar o componente `SponsorsSidebar.tsx` em coluna lateral direita fixa de cima a baixo com tamanho padrão.
+- [x] Ajustar o layout principal do simulador para acomodar a coluna lateral direita de patrocinadores em tamanho padronizado de cima a baixo.
