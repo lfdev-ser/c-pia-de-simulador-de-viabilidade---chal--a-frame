@@ -23,6 +23,7 @@ import {
   upsertUserSettings,
   listIcfWorks,
   createIcfWork,
+  updateIcfWork,
   deleteIcfWork,
 } from "./db";
 import { users } from "../drizzle/schema";
@@ -283,6 +284,16 @@ export const appRouter = router({
           mediaUrl: uploadResult.url,
         });
         return { success: true, message: "Arquivo enviado e cadastrado com sucesso!" } as const;
+      }),
+    updateWork: adminProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        title: z.string().min(1),
+        description: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        await updateIcfWork(input.id, input.title, input.description);
+        return { success: true, message: "Item atualizado com sucesso!" } as const;
       }),
     deleteWork: adminProcedure
       .input(z.object({ id: z.number().int().positive() }))

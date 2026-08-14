@@ -75,6 +75,9 @@
 - [x] Desenvolver a aba/seção visual responsiva para exibição de Obras ICF & Galeria no sistema.
 - [x] Implementar upload direto de fotos, vídeos e arquivos PDF/folders sem exigir links externos.
 - [x] Simplificar e corrigir o fluxo de upload para garantir envio simples e sem falhas.
+- [x] Adicionar funcionalidade para renomear e excluir itens diretamente na galeria administrativa.
+- [x] Implementar visualizador em tela cheia (lightbox) para fotos e vídeos ao clicar.
+
 
 
 

@@ -262,3 +262,9 @@ export async function deleteIcfWork(id: number) {
   if (!db) throw new Error("Banco de dados indisponível");
   await db.delete(icfWorks).where(eq(icfWorks.id, id));
 }
+
+export async function updateIcfWork(id: number, title: string, description?: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível");
+  await db.update(icfWorks).set({ title, ...(description !== undefined ? { description } : {}) }).where(eq(icfWorks.id, id));
+}
