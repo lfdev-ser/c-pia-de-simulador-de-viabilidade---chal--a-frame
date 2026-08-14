@@ -74,5 +74,7 @@
 - [x] Implementar rotas tRPC e helpers de banco para gerenciar e listar itens da galeria.
 - [x] Desenvolver a aba/seção visual responsiva para exibição de Obras ICF & Galeria no sistema.
 - [x] Implementar upload direto de fotos, vídeos e arquivos PDF/folders sem exigir links externos.
+- [x] Simplificar e corrigir o fluxo de upload para garantir envio simples e sem falhas.
+
 
 
