@@ -137,4 +137,12 @@
 - [x] Auditar a geração do cookie no backend e os atributos SameSite/Secure/Domain para garantir persistência correta entre redirecionamentos. Registrado middleware `cookie-parser` em `server/_core/index.ts` para que `req.cookies` leia o cookie `userId` e autorize a sessão pós-login.
 # Correção de Imagens sem URL
 
-- [ ] Impedir que componentes renderizem `<img>` com `src=""` e exibir a imagem somente quando houver URL válida.
+- [x] Impedir que componentes renderizem `<img>` com `src=""` e exibir a imagem somente quando houver URL válida.
+# Segunda Etapa do Ad Manager — Inventário Comercial
+
+- [ ] Expandir schema e tabelas Drizzle para separar `ad_campaigns`, `ad_creatives` e `ad_slots` com controle de orçamento, impressões contratadas, agendamento de datas e limites diários/sessão.
+- [ ] Implementar inventário dinâmico de slots na coluna lateral direita baseado na quantidade de seções/conteúdo da página, preservando o lazy loading.
+- [ ] Aprimorar o motor de seleção (`server/adEngine.ts`) com Sponsor Score detalhado (explicado no painel), geolocalização rigorosa e frequency capping (`frequency_cap_session`, `frequency_cap_day`, `impression_limit`).
+- [ ] Calcular Share of Voice e métricas de CTR, impressões e cliques no painel administrativo, com desempenho por cidade/estado e acompanhamento de orçamento em tempo real.
+- [ ] Implementar validação automática de criativos 640×360 px (proporção 16:9, limite de 500 KB, formatos WebP/PNG/JPG) com ferramenta de recorte automático (crop 16:9) no upload.
+- [ ] Criar e executar testes automatizados de seleção, geolocalização, frequency cap, lazy loading e distribuição de impressões.
