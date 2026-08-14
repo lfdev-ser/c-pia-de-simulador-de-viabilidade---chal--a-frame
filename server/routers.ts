@@ -25,6 +25,11 @@ import {
   createIcfWork,
   updateIcfWork,
   deleteIcfWork,
+  listSponsors,
+  listActiveSponsors,
+  createSponsor,
+  updateSponsor,
+  deleteSponsor,
 } from "./db";
 import { users } from "../drizzle/schema";
 import { eq, sql } from "drizzle-orm";
@@ -300,6 +305,83 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         await deleteIcfWork(input.id);
         return { success: true, message: "Item removido com sucesso!" } as const;
+      }),
+
+    // Patrocinadores
+    listSponsors: publicProcedure.query(async () => {
+      return await listActiveSponsors();
+    }),
+    listAllSponsors: adminProcedure.query(async () => {
+      return await listSponsors();
+    }),
+    createSponsor: adminProcedure
+      .input(z.object({
+        name: z.string().min(1),
+        title: z.string().min(1),
+        description: z.string().optional(),
+        imageUrl: z.string(),
+        externalLink: z.string().optional(),
+        displayOrder: z.number().int().default(0),
+        isActive: z.number().int().default(1),
+      }))
+      .mutation(async ({ input }) => {
+        await createSponsor(input);
+        return { success: true, message: "Patrocinador cadastrado com sucesso!" } as const;
+      }),
+    uploadSponsor: adminProcedure
+      .input(z.object({
+        name: z.string().min(1),
+        title: z.string().min(1),
+        description: z.string().optional(),
+        externalLink: z.string().optional(),
+        displayOrder: z.number().int().default(0),
+        isActive: z.number().int().default(1),
+        fileName: z.string(),
+        fileBase64: z.string(),
+        contentType: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const buffer = Buffer.from(input.fileBase64, 'base64');
+        const uploadResult = await storagePut(`sponsors/${input.fileName}`, buffer, input.contentType);
+        await createSponsor({
+          name: input.name,
+          title: input.title,
+          description: input.description,
+          imageUrl: uploadResult.url,
+          externalLink: input.externalLink,
+          displayOrder: input.displayOrder,
+          isActive: input.isActive,
+        });
+        return { success: true, message: "Patrocinador enviado e cadastrado com sucesso!" } as const;
+      }),
+    updateSponsor: adminProcedure
+      .input(z.object({
+        id: z.number().int().positive(),
+        name: z.string().min(1),
+        title: z.string().min(1),
+        description: z.string().optional(),
+        imageUrl: z.string().optional(),
+        externalLink: z.string().optional(),
+        displayOrder: z.number().int().default(0),
+        isActive: z.number().int().default(1),
+      }))
+      .mutation(async ({ input }) => {
+        await updateSponsor(input.id, {
+          name: input.name,
+          title: input.title,
+          description: input.description,
+          imageUrl: input.imageUrl,
+          externalLink: input.externalLink,
+          displayOrder: input.displayOrder,
+          isActive: input.isActive,
+        });
+        return { success: true, message: "Patrocinador atualizado com sucesso!" } as const;
+      }),
+    deleteSponsor: adminProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        await deleteSponsor(input.id);
+        return { success: true, message: "Patrocinador removido com sucesso!" } as const;
       }),
   }),
 

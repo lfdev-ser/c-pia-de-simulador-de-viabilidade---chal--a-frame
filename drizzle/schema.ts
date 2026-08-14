@@ -106,3 +106,21 @@ export const icfWorks = mysqlTable("icf_works", {
 
 export type IcfWork = typeof icfWorks.$inferSelect;
 export type InsertIcfWork = typeof icfWorks.$inferInsert;
+
+/**
+ * Patrocinadores / Posts Patrocinados (espaço gratuito para parceiros)
+ */
+export const sponsors = mysqlTable("sponsors", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  imageUrl: text("imageUrl").notNull(),
+  externalLink: varchar("externalLink", { length: 500 }),
+  displayOrder: int("displayOrder").default(0).notNull(),
+  isActive: int("isActive").default(1).notNull(), // 1 = ativo, 0 = inativo
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Sponsor = typeof sponsors.$inferSelect;
+export type InsertSponsor = typeof sponsors.$inferInsert;

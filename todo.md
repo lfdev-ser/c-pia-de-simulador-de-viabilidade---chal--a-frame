@@ -96,3 +96,9 @@
 - [x] Adicionar gráficos visuais de economia de EPS e gráficos comparativos de insumos estruturais (concreto, aço, revestimento e fundação) ao relatório técnico em PDF.
 - [x] Implementar botões de compartilhamento direto do relatório técnico via WhatsApp e e-mail com os clientes, com fallback para download e anexo manual.
 - [x] Corrigir a tolerância numérica do cálculo de formas inteiras/cortadas para não gerar cortes falsos em múltiplos como 3,60m ÷ 0,40m.
+# Área de Patrocinadores (Sponsorships)
+
+- [x] Criar tabela `sponsors` no banco MySQL/TiDB com campos para título, descrição, imagem/logo, link externo, ordem de exibição e status ativo.
+- [x] Adicionar procedimentos tRPC para listar, criar, atualizar e excluir posts de patrocinadores (protegidos para administradores).
+- [x] Desenvolver a interface administrativa no painel gerencial para gerenciar os patrocinadores com upload direto de imagens.
+- [x] Criar o componente público de exibição de patrocinadores em destaque no site e no simulador.

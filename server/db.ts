@@ -1,5 +1,5 @@
 import { drizzle } from "drizzle-orm/mysql2";
-import { and, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import {
   InsertUser,
   comparisonHistory,
@@ -7,6 +7,7 @@ import {
   InsertIcfWork,
   materialPrices,
   simulations,
+  sponsors,
   userSettings,
   users,
 } from "../drizzle/schema";
@@ -267,4 +268,67 @@ export async function updateIcfWork(id: number, title: string, description?: str
   const db = await getDb();
   if (!db) throw new Error("Banco de dados indisponível");
   await db.update(icfWorks).set({ title, ...(description !== undefined ? { description } : {}) }).where(eq(icfWorks.id, id));
+}
+
+export async function listSponsors() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(sponsors).orderBy(asc(sponsors.displayOrder), desc(sponsors.id));
+}
+
+export async function listActiveSponsors() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(sponsors).where(eq(sponsors.isActive, 1)).orderBy(asc(sponsors.displayOrder), desc(sponsors.id));
+}
+
+export async function createSponsor(data: {
+  name: string;
+  title: string;
+  description?: string;
+  imageUrl: string;
+  externalLink?: string;
+  displayOrder?: number;
+  isActive?: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível");
+  const [result] = await db.insert(sponsors).values({
+    name: data.name,
+    title: data.title,
+    description: data.description || null,
+    imageUrl: data.imageUrl,
+    externalLink: data.externalLink || null,
+    displayOrder: data.displayOrder ?? 0,
+    isActive: data.isActive ?? 1,
+  });
+  return result.insertId;
+}
+
+export async function updateSponsor(id: number, data: {
+  name: string;
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  externalLink?: string;
+  displayOrder?: number;
+  isActive?: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível");
+  await db.update(sponsors).set({
+    name: data.name,
+    title: data.title,
+    description: data.description || null,
+    ...(data.imageUrl ? { imageUrl: data.imageUrl } : {}),
+    externalLink: data.externalLink || null,
+    displayOrder: data.displayOrder ?? 0,
+    isActive: data.isActive ?? 1,
+  }).where(eq(sponsors.id, id));
+}
+
+export async function deleteSponsor(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Banco de dados indisponível");
+  await db.delete(sponsors).where(eq(sponsors.id, id));
 }

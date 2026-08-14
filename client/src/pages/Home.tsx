@@ -5,6 +5,7 @@ import AFrameSimulator from '@/components/AFrameSimulator';
 import AFrameLogo from '@/components/AFrameLogo';
 import { AdminDashboardPage } from '@/components/AdminDashboardPage';
 import { IcfWorksGallery } from '@/components/IcfWorksGallery';
+import { SponsorsCarousel } from '@/components/SponsorsCarousel';
 import { Layers } from 'lucide-react';
 import { getPasswordInputType } from '@/lib/passwordVisibility';
 import { Button } from '@/components/ui/button';
@@ -201,6 +202,7 @@ export default function Home() {
       {/* Main Content Area */}
       <main className="flex-1 flex items-center justify-center p-6">
         {authMode === 'landing' && (
+          <>
           <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center py-12">
             <div className="space-y-6">
               <div className="inline-flex items-center gap-2 bg-[#15803d]/10 text-[#15803d] px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
@@ -277,6 +279,11 @@ export default function Home() {
               </Button>
             </div>
           </div>
+          
+          <div className="mt-8">
+            <SponsorsCarousel />
+          </div>
+          </>
         )}
 
         {authMode === 'login' && (

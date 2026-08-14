@@ -24,6 +24,7 @@ import { EPSOptimizationWarning } from './EPSOptimizationWarning';
 import { EPSMultipleValidation } from './EPSMultipleValidation';
 import { EPSBlockVisualization } from './EPSBlockVisualization';
 import { ComparisonHistory } from './ComparisonHistory';
+import { SponsorsCarousel } from './SponsorsCarousel';
 import { formatDimensionInput, parseDimensionInput } from '@/lib/dimensionInput';
 import { saveComparison } from '@/lib/comparisonHistory';
 import { ComparisonRecord } from '@/lib/comparisonHistory';
@@ -1515,6 +1516,9 @@ export default function AFrameSimulator() {
             />
           </div>
         )}
+
+        {/* Patrocinadores Oficiais */}
+        <SponsorsCarousel />
 
         {/* Comparador Modal */}
         <ComparadorSimulacoes

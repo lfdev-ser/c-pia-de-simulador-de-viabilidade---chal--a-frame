@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield, Users, UserCheck, UserX, Search, ArrowLeft, Loader2, ShieldCheck, Mail, Trash2, Settings, User } from 'lucide-react';
+import { Shield, Users, UserCheck, UserX, Search, ArrowLeft, Loader2, ShieldCheck, Mail, Trash2, Settings, User, Award } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
+import { SponsorsAdminPanel } from './SponsorsAdminPanel';
 
 interface AdminDashboardPageProps {
   onBackToSimulator: () => void;
@@ -12,7 +13,7 @@ interface AdminDashboardPageProps {
 }
 
 export function AdminDashboardPage({ onBackToSimulator, currentUser }: AdminDashboardPageProps) {
-  const [activeTab, setActiveTab] = useState<'users' | 'profile'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'sponsors' | 'profile'>('users');
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'user'>('all');
   
@@ -110,12 +111,18 @@ export function AdminDashboardPage({ onBackToSimulator, currentUser }: AdminDash
       </header>
 
       {/* Navigation Subheader / Tabs */}
-      <div className="bg-white border-b border-slate-200 px-4 lg:px-8 py-2 flex items-center gap-4 shadow-xs">
+      <div className="bg-white border-b border-slate-200 px-4 lg:px-8 py-2 flex flex-wrap items-center gap-4 shadow-xs">
         <button
           onClick={() => setActiveTab('users')}
           className={`px-4 py-2 text-sm font-bold rounded-lg transition-all flex items-center gap-2 ${activeTab === 'users' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'text-slate-600 hover:bg-slate-100'}`}
         >
           <Users className="w-4 h-4" /> Gerenciar Usuários
+        </button>
+        <button
+          onClick={() => setActiveTab('sponsors')}
+          className={`px-4 py-2 text-sm font-bold rounded-lg transition-all flex items-center gap-2 ${activeTab === 'sponsors' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'text-slate-600 hover:bg-slate-100'}`}
+        >
+          <Award className="w-4 h-4" /> Patrocinadores & Banners
         </button>
         <button
           onClick={() => setActiveTab('profile')}
@@ -127,7 +134,9 @@ export function AdminDashboardPage({ onBackToSimulator, currentUser }: AdminDash
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8 space-y-6">
-        {activeTab === 'users' ? (
+        {activeTab === 'sponsors' ? (
+          <SponsorsAdminPanel />
+        ) : activeTab === 'users' ? (
           <>
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
