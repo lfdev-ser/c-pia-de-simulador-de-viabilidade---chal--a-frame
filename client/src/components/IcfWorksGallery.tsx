@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Image, Video, FileText, Layers, Plus, Trash2, ExternalLink, Loader2, Sparkles } from 'lucide-react';
+import { Image, Video, FileText, Layers, Plus, Trash2, ExternalLink, Loader2, Sparkles, Upload } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
 
@@ -19,34 +19,55 @@ export function IcfWorksGallery({ isAdmin }: IcfWorksGalleryProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<'chalet' | 'blocks' | 'folder' | 'video'>('chalet');
-  const [mediaUrl, setMediaUrl] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const worksQuery = trpc.admin.listWorks.useQuery(undefined, { retry: false });
-  const createWorkMutation = trpc.admin.createWork.useMutation();
+  const uploadWorkMutation = trpc.admin.uploadWork.useMutation();
   const deleteWorkMutation = trpc.admin.deleteWork.useMutation();
   const utils = trpc.useUtils();
 
-  const handleCreateWork = async (e: React.FormEvent) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
+  const handleUploadWork = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !mediaUrl) {
-      toast.error('Preencha o título e a URL da mídia.');
+    if (!title || !selectedFile) {
+      toast.error('Preencha o título e selecione um arquivo para upload.');
       return;
     }
+
     try {
-      await createWorkMutation.mutateAsync({
-        title,
-        description,
-        category,
-        mediaUrl,
-      });
-      await utils.admin.listWorks.invalidate();
-      toast.success('Obra/Mídia adicionada com sucesso!');
-      setTitle('');
-      setDescription('');
-      setMediaUrl('');
-      setIsAdding(false);
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64String = (reader.result as string).split(',')[1];
+        try {
+          await uploadWorkMutation.mutateAsync({
+            title,
+            description,
+            category,
+            fileName: selectedFile.name,
+            fileBase64: base64String,
+            contentType: selectedFile.type || 'application/octet-stream',
+          });
+          await utils.admin.listWorks.invalidate();
+          toast.success('Arquivo enviado e cadastrado com sucesso!');
+          setTitle('');
+          setDescription('');
+          setSelectedFile(null);
+          setIsAdding(false);
+        } catch (err: any) {
+          toast.error(err.message || 'Erro ao enviar arquivo.');
+        }
+      };
+      reader.onerror = () => {
+        toast.error('Erro ao ler arquivo local.');
+      };
+      reader.readAsDataURL(selectedFile);
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao cadastrar obra/mídia.');
+      toast.error(error.message || 'Erro ao processar upload.');
     }
   };
 
@@ -75,7 +96,7 @@ export function IcfWorksGallery({ isAdmin }: IcfWorksGalleryProps) {
             <Sparkles className="w-3.5 h-3.5" /> Portfólio & Materiais ICF
           </div>
           <h2 className="text-3xl font-black text-slate-900">Obras ICF & Galeria</h2>
-          <p className="text-sm text-slate-600">Explore chalés realizados, fotos dos blocos EPS, folders técnicos e vídeos explicativos.</p>
+          <p className="text-sm text-slate-600">Envie e explore fotos de chalés, blocos de EPS, folders técnicos e vídeos diretamente.</p>
         </div>
 
         {isAdmin && (
@@ -83,24 +104,26 @@ export function IcfWorksGallery({ isAdmin }: IcfWorksGalleryProps) {
             onClick={() => setIsAdding(!isAdding)}
             className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold gap-2 shadow-sm"
           >
-            <Plus className="w-4 h-4" /> {isAdding ? 'Cancelar' : 'Adicionar Nova Mídia'}
+            <Plus className="w-4 h-4" /> {isAdding ? 'Cancelar' : 'Enviar Novo Arquivo'}
           </Button>
         )}
       </div>
 
-      {/* Admin Add Form Modal/Card */}
+      {/* Admin Upload Form */}
       {isAdmin && isAdding && (
         <Card className="bg-white border-emerald-200 shadow-md">
           <CardHeader className="border-b bg-emerald-50/50">
-            <CardTitle className="text-lg font-bold text-emerald-900">Cadastrar Novo Item na Galeria</CardTitle>
+            <CardTitle className="text-lg font-bold text-emerald-900 flex items-center gap-2">
+              <Upload className="w-5 h-5 text-emerald-600" /> Enviar Arquivo para a Galeria (Foto, Vídeo ou Folder)
+            </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
-            <form onSubmit={handleCreateWork} className="space-y-4">
+            <form onSubmit={handleUploadWork} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700 uppercase">Título da Obra / Mídia</label>
                   <Input
-                    placeholder="Ex: Chalé A-frame Serra 8x8m"
+                    placeholder="Ex: Chalé A-frame Serra 8x8m ou Bloco EPS 1.25m"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     required
@@ -122,13 +145,17 @@ export function IcfWorksGallery({ isAdmin }: IcfWorksGalleryProps) {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 uppercase">URL da Mídia (Imagem, Vídeo ou Folder)</label>
-                <Input
-                  placeholder="https://exemplo.com/imagem.jpg ou link do YouTube/S3"
-                  value={mediaUrl}
-                  onChange={(e) => setMediaUrl(e.target.value)}
-                  required
-                />
+                <label className="text-xs font-bold text-slate-700 uppercase">Arquivo (Foto, Vídeo ou PDF)</label>
+                <div className="flex items-center gap-3">
+                  <Input
+                    type="file"
+                    accept="image/*,video/*,.pdf"
+                    onChange={handleFileChange}
+                    required
+                    className="cursor-pointer bg-slate-50"
+                  />
+                </div>
+                <p className="text-xs text-slate-500">Selecione o arquivo diretamente do seu dispositivo.</p>
               </div>
 
               <div className="space-y-1.5">
@@ -151,11 +178,11 @@ export function IcfWorksGallery({ isAdmin }: IcfWorksGalleryProps) {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={createWorkMutation.isPending}
+                  disabled={uploadWorkMutation.isPending}
                   className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold gap-2"
                 >
-                  {createWorkMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Salvar na Galeria
+                  {uploadWorkMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Fazer Upload e Cadastrar
                 </Button>
               </div>
             </form>
@@ -208,24 +235,21 @@ export function IcfWorksGallery({ isAdmin }: IcfWorksGalleryProps) {
             <Card key={item.id} className="bg-white border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col">
               <div className="relative aspect-video bg-slate-100 flex items-center justify-center overflow-hidden">
                 {item.category === 'video' ? (
-                  <div className="w-full h-full bg-slate-900 flex items-center justify-center text-white relative">
-                    <Video className="w-12 h-12 text-emerald-400 mb-2" />
-                    <span className="absolute bottom-2 left-2 bg-black/60 px-2 py-0.5 rounded text-xs font-semibold">Vídeo Explicativo</span>
-                  </div>
+                  <video
+                    src={item.mediaUrl}
+                    controls
+                    className="w-full h-full object-cover bg-black"
+                  />
                 ) : item.category === 'folder' ? (
                   <div className="w-full h-full bg-slate-100 flex flex-col items-center justify-center text-slate-700 p-4 border-b">
                     <FileText className="w-12 h-12 text-emerald-600 mb-2" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Folder Técnico</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Documento / Folder PDF</span>
                   </div>
                 ) : (
                   <img
                     src={item.mediaUrl}
                     alt={item.title}
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                    onError={(e) => {
-                      // Fallback se imagem falhar
-                      (e.target as HTMLElement).style.display = 'none';
-                    }}
                   />
                 )}
                 <span className="absolute top-3 right-3 bg-slate-900/80 text-white px-2.5 py-1 rounded-full text-xs font-bold backdrop-blur-xs uppercase tracking-wider">
@@ -248,7 +272,7 @@ export function IcfWorksGallery({ isAdmin }: IcfWorksGalleryProps) {
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-800"
                   >
-                    Acessar Mídia <ExternalLink className="w-3.5 h-3.5" />
+                    Visualizar Arquivo <ExternalLink className="w-3.5 h-3.5" />
                   </a>
 
                   {isAdmin && (
@@ -269,9 +293,9 @@ export function IcfWorksGallery({ isAdmin }: IcfWorksGalleryProps) {
       ) : (
         <Card className="bg-white border-dashed border-2 border-slate-200 rounded-2xl p-12 text-center space-y-3">
           <Layers className="w-12 h-12 text-slate-300 mx-auto" />
-          <h3 className="font-bold text-base text-slate-700">Nenhuma obra ou mídia cadastrada nesta categoria</h3>
+          <h3 className="font-bold text-base text-slate-700">Nenhum arquivo cadastrado nesta categoria</h3>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
-            {isAdmin ? 'Utilize o botão "Adicionar Nova Mídia" acima para cadastrar fotos de blocos EPS, chalés ou folders.' : 'Em breve novos conteúdos serão adicionados pela administração.'}
+            {isAdmin ? 'Utilize o botão "Enviar Novo Arquivo" acima para fazer upload de fotos, vídeos ou folders.' : 'Em breve novos arquivos serão adicionados pela administração.'}
           </p>
         </Card>
       )}

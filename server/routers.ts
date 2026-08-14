@@ -29,6 +29,7 @@ import { users } from "../drizzle/schema";
 import { eq, sql } from "drizzle-orm";
 import crypto from "crypto";
 import { hashPassword, verifyPassword } from "./authUtils";
+import { storagePut } from "./storage";
 import { sendVerificationEmail, sendPasswordResetEmail } from "./emailService";
 import { TRPCError } from "@trpc/server";
 
@@ -256,12 +257,32 @@ export const appRouter = router({
         title: z.string().min(1),
         description: z.string().optional(),
         category: z.enum(['chalet', 'blocks', 'folder', 'video']),
-        mediaUrl: z.string().url(),
-        thumbnailUrl: z.string().url().optional(),
+        mediaUrl: z.string(),
+        thumbnailUrl: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
         await createIcfWork(input);
         return { success: true, message: "Obra/Mídia adicionada com sucesso!" } as const;
+      }),
+    uploadWork: adminProcedure
+      .input(z.object({
+        title: z.string().min(1),
+        description: z.string().optional(),
+        category: z.enum(['chalet', 'blocks', 'folder', 'video']),
+        fileName: z.string(),
+        fileBase64: z.string(),
+        contentType: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const buffer = Buffer.from(input.fileBase64, 'base64');
+        const uploadResult = await storagePut(`works/${input.fileName}`, buffer, input.contentType);
+        await createIcfWork({
+          title: input.title,
+          description: input.description,
+          category: input.category,
+          mediaUrl: uploadResult.url,
+        });
+        return { success: true, message: "Arquivo enviado e cadastrado com sucesso!" } as const;
       }),
     deleteWork: adminProcedure
       .input(z.object({ id: z.number().int().positive() }))

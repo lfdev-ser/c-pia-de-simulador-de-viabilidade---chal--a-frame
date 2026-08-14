@@ -73,4 +73,6 @@
 - [x] Criar tabela de banco de dados `icf_works` para mídias (vídeos de chalés, fotos de blocos EPS, folders e catálogos).
 - [x] Implementar rotas tRPC e helpers de banco para gerenciar e listar itens da galeria.
 - [x] Desenvolver a aba/seção visual responsiva para exibição de Obras ICF & Galeria no sistema.
+- [x] Implementar upload direto de fotos, vídeos e arquivos PDF/folders sem exigir links externos.
+
 
