@@ -132,3 +132,6 @@
 # Correção de Sessão Pós-Login
 
 - [x] Garantir invalidação imediata da query de autenticação e recarregamento da página ou estado ao receber sucesso no login.
+# Correção de Persistência de Sessão e Cookies
+
+- [x] Auditar a geração do cookie no backend e os atributos SameSite/Secure/Domain para garantir persistência correta entre redirecionamentos. Registrado middleware `cookie-parser` em `server/_core/index.ts` para que `req.cookies` leia o cookie `userId` e autorize a sessão pós-login.
