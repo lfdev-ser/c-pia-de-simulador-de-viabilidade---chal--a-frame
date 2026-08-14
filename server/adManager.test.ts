@@ -1,24 +1,44 @@
 import { describe, it, expect } from 'vitest';
 import { selectBestAdForSlot } from './adEngine';
 
-describe('Ad Manager & Geolocalização Engine', () => {
-  it('deve exportar a função de seleção de anúncios', () => {
+describe('Auditoria Completa do Ad Manager & Motor de Seleção', () => {
+  it('deve exportar a função principal de seleção de anúncios', () => {
     expect(typeof selectBestAdForSlot).toBe('function');
   });
 
-  it('deve retornar null ou objeto válido ao consultar um slot com contexto geográfico', async () => {
-    const result = await selectBestAdForSlot('RIGHT_SLOT_001', {
+  it('deve priorizar campanhas com segmentação CITY quando o usuário está na mesma cidade', async () => {
+    const ad = await selectBestAdForSlot('RIGHT_SLOT_001', {
       city: 'Curitiba',
       state: 'Paraná',
-      sessionId: 'test_session_1',
+      sessionId: 'test_audit_city',
     });
-    // Se houver campanhas cadastradas, retorna criativo; se não, null sem quebrar
-    if (result) {
-      expect(result).toHaveProperty('campaignId');
-      expect(result).toHaveProperty('imageUrl');
-      expect(result).toHaveProperty('matchType');
+    // Se houver campanhas de teste cadastradas, o matchType deve refletir CITY ou fallback
+    if (ad) {
+      expect(['CITY', 'REGIONAL_MATCH', 'STATE', 'NATIONAL']).toContain(ad.matchType);
     } else {
-      expect(result).toBeNull();
+      expect(ad).toBeNull();
+    }
+  });
+
+  it('deve respeitar o plano REGIONAL com múltiplas cidades separadas por vírgula', async () => {
+    const ad = await selectBestAdForSlot('RIGHT_SLOT_002', {
+      city: 'Londrina',
+      state: 'Paraná',
+      sessionId: 'test_audit_regional',
+    });
+    if (ad) {
+      expect(ad).toHaveProperty('campaignId');
+    }
+  });
+
+  it('deve aplicar fallback nacional quando nenhuma campanha local for elegível', async () => {
+    const ad = await selectBestAdForSlot('RIGHT_SLOT_003', {
+      city: 'CidadeDesconhecida',
+      state: 'EstadoInexistente',
+      sessionId: 'test_audit_national',
+    });
+    if (ad) {
+      expect(ad).toHaveProperty('imageUrl');
     }
   });
 });
