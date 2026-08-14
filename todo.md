@@ -126,5 +126,5 @@
 - [x] Auditar larguras reais da coluna lateral e definir dimensões finais dos criativos (640x360px 16:9), formatos WebP/PNG/JPG e limite de 500KB.
 # Segurança e Senha do Administrador
 
-- [ ] Garantir rota tRPC segura para o administrador cadastrar ou alterar sua senha com hash criptográfico (scrypt).
-- [ ] Incluir interface de redefinição de senha protegida no painel administrativo e na tela de login/recuperação.
+- [x] Garantir rota tRPC segura para o administrador cadastrar ou alterar sua senha com hash criptográfico (scrypt).
+- [x] Incluir interface de redefinição de senha protegida no painel administrativo e na tela de login/recuperação.
