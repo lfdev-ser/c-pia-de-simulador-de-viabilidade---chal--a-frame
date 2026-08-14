@@ -110,3 +110,4 @@
 - [x] Atualizar `SponsorsAdminPanel.tsx` com o botão exclusivo para o administrador excluir a imagem do patrocinador.
 - [x] Criar o componente `SponsorsSidebar.tsx` em coluna lateral direita fixa de cima a baixo com tamanho padrão.
 - [x] Ajustar o layout principal do simulador para acomodar a coluna lateral direita de patrocinadores em tamanho padronizado de cima a baixo.
+- [x] Remover o comportamento `sticky` da coluna de patrocinadores em `AFrameSimulator.tsx` para que os vários posts de patrocinadores fluam naturalmente de cima a baixo junto com a rolagem da página.

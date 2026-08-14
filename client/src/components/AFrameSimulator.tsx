@@ -1607,11 +1607,9 @@ export default function AFrameSimulator() {
         />
         </div>
 
-        {/* Coluna Lateral Direita de Patrocinadores (de cima até o final) */}
+        {/* Coluna Lateral Direita de Patrocinadores (de cima até o final, em fluxo normal sem flutuar) */}
         <div className="xl:w-80 shrink-0">
-          <div className="sticky top-6">
-            <SponsorsSidebar />
-          </div>
+          <SponsorsSidebar />
         </div>
       </div>
     </div>
