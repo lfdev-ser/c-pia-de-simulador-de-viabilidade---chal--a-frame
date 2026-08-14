@@ -406,6 +406,20 @@ export const appRouter = router({
         await removeSponsorImage(input.id);
         return { success: true, message: "Imagem do patrocinador removida com sucesso!" } as const;
       }),
+    updateAdminPassword: adminProcedure
+      .input(z.object({
+        userId: z.number().int().positive(),
+        newPassword: z.string().min(6),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const db = await getDb();
+        if (!db) throw new Error("DB indisponível");
+        const passwordHash = await hashPassword(input.newPassword);
+        await db.update(users)
+          .set({ passwordHash })
+          .where(eq(users.id, input.userId));
+        return { success: true, message: "Senha atualizada com segurança com hash scrypt!" };
+      }),
   }),
 
   ads: router({

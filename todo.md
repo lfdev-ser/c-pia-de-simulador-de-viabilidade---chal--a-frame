@@ -124,3 +124,7 @@
 - [x] Criar testes unitários e de integração abrangentes (`server/adManager.test.ts`) cobrindo 100% dos cenários de geolocalização e pontuação.
 - [x] Apresentar relatório formal de auditoria com tabela de conformidade, evidências e resultados dos testes.
 - [x] Auditar larguras reais da coluna lateral e definir dimensões finais dos criativos (640x360px 16:9), formatos WebP/PNG/JPG e limite de 500KB.
+# Segurança e Senha do Administrador
+
+- [ ] Garantir rota tRPC segura para o administrador cadastrar ou alterar sua senha com hash criptográfico (scrypt).
+- [ ] Incluir interface de redefinição de senha protegida no painel administrativo e na tela de login/recuperação.
