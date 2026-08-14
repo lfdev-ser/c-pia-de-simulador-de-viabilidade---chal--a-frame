@@ -123,3 +123,4 @@
 - [x] Expandir o motor (`server/adEngine.ts`) para suportar planos Regionais com múltiplas cidades, state-level, national fallback, frequency capping rigoroso por sessão/dia, rotação ponderada e pontuação (Sponsor Score).
 - [x] Criar testes unitários e de integração abrangentes (`server/adManager.test.ts`) cobrindo 100% dos cenários de geolocalização e pontuação.
 - [x] Apresentar relatório formal de auditoria com tabela de conformidade, evidências e resultados dos testes.
+- [x] Auditar larguras reais da coluna lateral e definir dimensões finais dos criativos (640x360px 16:9), formatos WebP/PNG/JPG e limite de 500KB.
