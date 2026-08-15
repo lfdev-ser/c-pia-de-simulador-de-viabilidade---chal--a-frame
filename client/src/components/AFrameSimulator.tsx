@@ -706,9 +706,14 @@ export default function AFrameSimulator() {
     const finishingIcfibraQuantity = finishingCosts.includedProducts
       .filter((product) => product.id === 'icfibra-metro')
       .reduce((sum, product) => sum + product.requiredQuantity, 0);
-    const obraCinzaCostPerM2 = ICF_FORMS_PER_M2 * prices.epsPerForm
-      + ICF_CONCRETE_PER_M2 * prices.concretePerM3
-      + ICF_STEEL_PER_M2 * prices.steelPerKg
+    // Composição rigorosa por m² de parede cinza:
+    // 1. 2 formas de EPS (ICF_FORMS_PER_M2 = 2)
+    // 2. 78 litros de concreto (ICF_CONCRETE_PER_M2 = 0.078 m³)
+    // 3. 5 kg de aço (ICF_STEEL_PER_M2 = 5)
+    // 4. Acabamentos internos e externos selecionados (ICFlex / ICFibra)
+    const obraCinzaCostPerM2 = (ICF_FORMS_PER_M2 * prices.epsPerForm)
+      + (ICF_CONCRETE_PER_M2 * prices.concretePerM3)
+      + (ICF_STEEL_PER_M2 * prices.steelPerKg)
       + finishingCosts.costPerM2;
     const finishingYieldsPending = prices.finishingProducts
       .filter((product) => product.includeInObraCinza && product.unitsPerM2 <= 0)
@@ -1576,9 +1581,9 @@ export default function AFrameSimulator() {
             const obraCinzaCost = concreteCost + steelCost + epsCost + finishingProductsCost;
             const totalCost = obraCinzaCost + accessoriesCost + iceflexCost + icfibraCost;
             const costPerM2 = data.wallArea > 0
-              ? Math.round((ICF_FORMS_PER_M2 * prices.epsPerForm
-                + ICF_CONCRETE_PER_M2 * prices.concretePerM3
-                + ICF_STEEL_PER_M2 * prices.steelPerKg
+              ? Math.round(((ICF_FORMS_PER_M2 * prices.epsPerForm)
+                + (ICF_CONCRETE_PER_M2 * prices.concretePerM3)
+                + (ICF_STEEL_PER_M2 * prices.steelPerKg)
                 + finishingCosts.costPerM2) * 100) / 100
               : 0;
             return {

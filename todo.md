@@ -195,3 +195,9 @@
 - [x] Ajustar a visualização 2D para exibir claramente todas as 4 faces (os 2 lados do telhado/A-frame e as paredes frontal e traseira).
 - [x] Garantir que o cálculo de blocos EPS, concreto e aço contabilize rigorosamente todas as 4 faces com os múltiplos corretos e avisos de desperdício.
 - [x] Executar testes Vitest e build de produção para confirmar a correção.
+# Correção do Custo por m² de Obra Cinza (EPS + Concreto + Aço + Acabamento)
+
+- [ ] Auditar onde o custo por m² de parede é calculado no código (`AFrameSimulator.tsx` e `materialPrices.ts`).
+- [ ] Reforçar a regra matemática para que 1 m² de parede inclua estritamente: 2 formas EPS, 78 litros de concreto, ~5 kg de aço, proporção de ICFlex externo e proporção de acabamento interno.
+- [ ] Atualizar as fórmulas e a exibição para que o valor reflita corretamente todos os insumos e aceite atualizações de preço.
+- [ ] Executar testes Vitest e build de produção para garantir estabilidade.
