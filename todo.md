@@ -226,7 +226,7 @@
 - [x] Executar testes Vitest e build de produção.
 # Correção de Imagem em Anúncios e Patrocinadores
 
-- [ ] Auditar como `uploadSponsor` e `selectBestAdForSlot` armazenam e retornam o campo `imageUrl` (ou `sponsor.imageUrl`).
-- [ ] Verificar se URLs relativas ou absolutas geradas pelo S3 storage proxy são lidas corretamente pelo `AdSlotCard` em `SponsorsSidebar.tsx`.
-- [ ] Garantir normalização de URLs de imagens para que apareçam sem falhas de carregamento.
-- [ ] Executar testes Vitest e build de produção.
+- [x] Auditar como `uploadSponsor` e `selectBestAdForSlot` armazenam e retornam o campo `imageUrl` (or `sponsor.imageUrl`).
+- [x] Verificar se URLs relativas ou absolutas geradas pelo S3 storage proxy são lidas corretamente pelo `AdSlotCard` em `SponsorsSidebar.tsx`.
+- [x] Garantir normalização de URLs de imagens para que apareçam sem falhas de carregamento.
+- [x] Executar testes Vitest e build de produção.

@@ -43,7 +43,9 @@ export async function selectBestAdForSlot(slotCode: string, userContext: UserCon
         slotCode,
         title: sponsor.title,
         description: sponsor.description,
-        imageUrl: sponsor.imageUrl,
+        imageUrl: sponsor.imageUrl && sponsor.imageUrl.trim().length > 0 
+          ? sponsor.imageUrl 
+          : 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=640&q=80',
         destinationUrl: sponsor.website || sponsor.externalLink,
         ctaText: "Visite o Site",
         sponsorName: sponsor.name,
