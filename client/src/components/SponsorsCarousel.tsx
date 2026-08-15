@@ -29,9 +29,10 @@ export function SponsorsCarousel() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {sponsors.map((sponsor: any) => {
-          const imageUrl = typeof sponsor.imageUrl === 'string' && sponsor.imageUrl.trim().length > 0
+          const rawImageUrl = typeof sponsor.imageUrl === 'string' && sponsor.imageUrl.trim().length > 0
             ? sponsor.imageUrl.trim()
             : null;
+          const imageUrl = rawImageUrl ? encodeURI(rawImageUrl) : null;
           const content = (
             <Card className="h-full bg-white border-emerald-100 hover:shadow-md hover:border-emerald-300 transition-all duration-200 rounded-2xl overflow-hidden flex flex-col">
               <div className="relative h-48 bg-white border-b border-slate-100 overflow-hidden flex items-center justify-center p-4">

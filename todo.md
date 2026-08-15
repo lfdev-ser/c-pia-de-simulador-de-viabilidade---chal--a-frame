@@ -230,3 +230,9 @@
 - [x] Verificar se URLs relativas ou absolutas geradas pelo S3 storage proxy são lidas corretamente pelo `AdSlotCard` em `SponsorsSidebar.tsx`.
 - [x] Garantir normalização de URLs de imagens para que apareçam sem falhas de carregamento.
 - [x] Executar testes Vitest e build de produção.
+# Correção Específica da Imagem e Patrocinador Oficina de AI
+
+- [ ] Auditar no banco de dados e logs o estado do patrocinador "Oficina de AI".
+- [ ] Verificar se a URL da imagem contendo parênteses ou espaços no nome do arquivo (`photo_2026-05-30_16-51-00 (2)_b4576934.jpg`) está causando falha de carregamento no navegador por codificação de URI.
+- [ ] Aplicar codificação de URI segura (`encodeURI`) ou normalização na renderização das imagens em `SponsorsSidebar.tsx`, `SponsorsCarousel.tsx` e `IcfWorksGallery.tsx`.
+- [ ] Executar testes Vitest e build de produção.

@@ -98,9 +98,10 @@ function AdSlotCard({ slotCode, sessionId, priorityIndex }: { slotCode: string; 
     });
   };
 
-  const imageUrl = typeof ad.imageUrl === 'string' && ad.imageUrl.trim().length > 0
+  const rawImageUrl = typeof ad.imageUrl === 'string' && ad.imageUrl.trim().length > 0
     ? ad.imageUrl.trim()
     : null;
+  const imageUrl = rawImageUrl ? encodeURI(rawImageUrl) : null;
 
   return (
     <Card className="bg-white border-emerald-100 hover:border-emerald-300 hover:shadow-md transition-all duration-200 rounded-2xl overflow-hidden flex flex-col">
