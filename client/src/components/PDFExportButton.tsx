@@ -309,7 +309,12 @@ export default function PDFExportButton({
       pdf.text(('ORÇAMENTO TOTAL:') as any, margin + 2, yPosition + 1);
       const totalBudget = 'R$ ' + totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
       pdf.text((totalBudget) as any, margin + 80, yPosition + 1);
-      yPosition += 12;
+      yPosition += 8;
+      pdf.setFontSize(8);
+      pdf.setFont(undefined as any, 'italic');
+      pdf.setTextColor(220, 250, 220);
+      pdf.text(('* Preço de custo ao expert, sem frete e impostos inclusos.') as any, margin + 2, yPosition);
+      yPosition += 10;
 
       // Custo por m²
       pdf.setFontSize(10);

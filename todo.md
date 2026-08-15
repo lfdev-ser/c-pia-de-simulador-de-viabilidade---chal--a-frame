@@ -213,3 +213,8 @@
 - [x] Atualizar o cadastro de produtos de acabamento para garantir que a tela de fibra participe do cálculo de `obraCinzaCostPerM2`.
 - [x] Validar que o custo por m² de parede passe a somar a tela de fibra junto ao EPS, concreto, aço e ICFlex.
 - [x] Executar testes Vitest e build de produção.
+# Observação Comercial de Custos (Sem Frete e Impostos)
+
+- [ ] Incluir a nota "Preço de custo ao expert, sem frete e impostos inclusos" na seção de resumo financeiro do simulador (`AFrameSimulator.tsx`).
+- [ ] Incluir a mesma nota nos botões de exportação e relatórios PDF (`PDFExportButton.tsx` e `ExpandedPDFExportButton.tsx`).
+- [ ] Executar testes Vitest e build de produção.

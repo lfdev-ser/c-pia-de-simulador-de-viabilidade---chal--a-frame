@@ -1336,9 +1336,14 @@ export default function AFrameSimulator() {
                     <p className="mt-1">{costs.finishingProductsSummary.map((product) => `${product.name}: ${product.unitsPerM2} ${product.unit}/m² = R$ ${(product.unitsPerM2 * product.unitPrice).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/m²`).join(' · ')}</p>
                   )}
                 </div>
-                <div className="flex justify-between items-center p-4 bg-gradient-to-r from-[#15803d] to-[#2d5016] rounded-lg">
-                  <p className="font-bold text-white">Total de Materiais</p>
-                  <p className="text-2xl font-bold text-white">R$ {costs.totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center p-4 bg-gradient-to-r from-[#15803d] to-[#2d5016] rounded-lg">
+                    <p className="font-bold text-white">Total de Materiais</p>
+                    <p className="text-2xl font-bold text-white">R$ {costs.totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                  </div>
+                  <p className="text-xs text-[#6b6b6b] italic text-right">
+                    * Preço de custo ao expert, sem frete e impostos inclusos.
+                  </p>
                 </div>
               </div>
             </Card>
