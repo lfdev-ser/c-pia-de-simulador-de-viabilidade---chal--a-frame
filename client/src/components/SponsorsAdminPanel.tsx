@@ -124,8 +124,6 @@ export function SponsorsAdminPanel() {
           const reader = new FileReader();
           reader.onload = async () => {
             const base64String = (reader.result as string).split(',')[1];
-            // Se houver nova imagem, podemos atualizar incluindo a nova imagem através de upload ou requisição
-            // Para manter simples, enviamos os dados e a imagem nova
             await updateMutation.mutateAsync({
               id: editingId,
               name: name.trim(),
@@ -137,6 +135,9 @@ export function SponsorsAdminPanel() {
               phone: phone.trim() || undefined,
               displayOrder: parseInt(displayOrder) || 0,
               isActive: isActive ? 1 : 0,
+              fileName: selectedFile.name,
+              fileBase64: base64String,
+              contentType: selectedFile.type,
             });
           };
           reader.readAsDataURL(selectedFile);

@@ -220,7 +220,13 @@
 - [x] Executar testes Vitest e build de produção.
 # Correção de Exibição de Patrocinadores na Coluna Lateral
 
-- [ ] Auditar como `SponsorsSidebar.tsx` consome os patrocinadores do backend.
-- [ ] Verificar se patrocinadores criados sem vincular explicitamente campanhas/criativos ao motor de anúncio avançado aparecem na listagem simples.
-- [ ] Garantir fallback para que todo patrocinador ativo cadastrado no painel seja exibido na coluna lateral direita.
+- [x] Auditar como `SponsorsSidebar.tsx` consome os patrocinadores do backend.
+- [x] Verificar se patrocinadores criados sem vincular explicitamente campanhas/criativos ao motor de anúncio avançado aparecem na listagem simples.
+- [x] Garantir fallback para que todo patrocinador ativo cadastrado no painel seja exibido na coluna lateral direita.
+- [x] Executar testes Vitest e build de produção.
+# Correção de Imagem em Anúncios e Patrocinadores
+
+- [ ] Auditar como `uploadSponsor` e `selectBestAdForSlot` armazenam e retornam o campo `imageUrl` (ou `sponsor.imageUrl`).
+- [ ] Verificar se URLs relativas ou absolutas geradas pelo S3 storage proxy são lidas corretamente pelo `AdSlotCard` em `SponsorsSidebar.tsx`.
+- [ ] Garantir normalização de URLs de imagens para que apareçam sem falhas de carregamento.
 - [ ] Executar testes Vitest e build de produção.

@@ -382,13 +382,22 @@ export const appRouter = router({
         phone: z.string().optional(),
         displayOrder: z.number().int().default(0),
         isActive: z.number().int().default(1),
+        fileName: z.string().optional(),
+        fileBase64: z.string().optional(),
+        contentType: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
+        let finalImageUrl = input.imageUrl;
+        if (input.fileBase64 && input.fileName && input.contentType) {
+          const buffer = Buffer.from(input.fileBase64, 'base64');
+          const uploadResult = await storagePut(`sponsors/${input.fileName}`, buffer, input.contentType);
+          finalImageUrl = uploadResult.url;
+        }
         await updateSponsor(input.id, {
           name: input.name,
           title: input.title,
           description: input.description,
-          imageUrl: input.imageUrl,
+          imageUrl: finalImageUrl,
           externalLink: input.externalLink,
           address: input.address,
           website: input.website,
