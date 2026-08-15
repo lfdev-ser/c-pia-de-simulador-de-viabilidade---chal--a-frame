@@ -181,3 +181,17 @@
 - [x] Auditar contagem de impressões faturáveis, CTR, SoV, frequency cap e geolocalização.
 - [x] Validar relatórios comerciais, comprovantes de pedido e logs de auditoria.
 - [x] Executar testes automatizados (Vitest) e build de produção sem ativar gateway real.
+# Auditoria de Persistência e Migração
+
+- [x] Conduzir auditoria somente de leitura da infraestrutura de dados e persistência do projeto.
+- [x] Identificar SGBD (MySQL / TiDB) e modelo relacional com 13 tabelas via Drizzle ORM.
+- [x] Mapear o armazenamento de arquivos binários e criativos no S3 Storage integrado.
+- [x] Listar as variáveis de ambiente necessárias para reconexão externa sem expor senhas.
+- [x] Gerar o relatório formal de migração e preservação (MIGRATION_AND_PERSISTENCE_AUDIT_REPORT.md).
+# Auditoria e Correção da Visualização 2D e Quantitativos do A-Frame
+
+- [ ] Auditar o código do componente de visualização 2D (`AFrameSimulator.tsx` ou similar) para verificar como os 2 lados inclinados e as paredes de fundo/frente são renderizados.
+- [ ] Auditar as fórmulas de cálculo de área de parede (lados A inclinados, frente e fundo) e conversão para blocos EPS (1.25m x 0.40m), concreto e aço.
+- [ ] Ajustar a visualização 2D para exibir claramente todas as 4 faces (os 2 lados do telhado/A-frame e as paredes frontal e traseira).
+- [ ] Garantir que o cálculo de blocos EPS, concreto e aço contabilize rigorosamente todas as 4 faces com os múltiplos corretos e avisos de desperdício.
+- [ ] Executar testes Vitest e build de produção para confirmar a correção.
