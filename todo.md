@@ -190,8 +190,8 @@
 - [x] Gerar o relatório formal de migração e preservação (MIGRATION_AND_PERSISTENCE_AUDIT_REPORT.md).
 # Auditoria e Correção da Visualização 2D e Quantitativos do A-Frame
 
-- [ ] Auditar o código do componente de visualização 2D (`AFrameSimulator.tsx` ou similar) para verificar como os 2 lados inclinados e as paredes de fundo/frente são renderizados.
-- [ ] Auditar as fórmulas de cálculo de área de parede (lados A inclinados, frente e fundo) e conversão para blocos EPS (1.25m x 0.40m), concreto e aço.
-- [ ] Ajustar a visualização 2D para exibir claramente todas as 4 faces (os 2 lados do telhado/A-frame e as paredes frontal e traseira).
-- [ ] Garantir que o cálculo de blocos EPS, concreto e aço contabilize rigorosamente todas as 4 faces com os múltiplos corretos e avisos de desperdício.
-- [ ] Executar testes Vitest e build de produção para confirmar a correção.
+- [x] Auditar o código do componente de visualização 2D (`AFrameSimulator.tsx` ou similar) para verificar como os 2 lados inclinados e as paredes de fundo/frente são renderizados.
+- [x] Auditar as fórmulas de cálculo de área de parede (lados A inclinados, frente e fundo) e conversão para blocos EPS (1.25m x 0.40m), concreto e aço.
+- [x] Ajustar a visualização 2D para exibir claramente todas as 4 faces (os 2 lados do telhado/A-frame e as paredes frontal e traseira).
+- [x] Garantir que o cálculo de blocos EPS, concreto e aço contabilize rigorosamente todas as 4 faces com os múltiplos corretos e avisos de desperdício.
+- [x] Executar testes Vitest e build de produção para confirmar a correção.

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 
 interface EPSBlockVisualizationProps {
@@ -24,35 +24,38 @@ export function EPSBlockVisualization({
   const EPS_BLOCK_LENGTH = 1.25; // metros
   const EPS_BLOCK_HEIGHT = 0.40; // metros
 
+  const [activeFace, setActiveFace] = useState<'side' | 'front_rear'>('side');
+
+  const currentDim = activeFace === 'side' 
+    ? { l: length, h: height } 
+    : { l: baseWidth, h: height };
+
   const visualization = useMemo(() => {
-    if (length === 0 || height === 0) {
+    const l = currentDim.l;
+    const h = currentDim.h;
+    if (l === 0 || h === 0) {
       return null;
     }
 
-    // Calcula quantos blocos cabem
-    const blocksHorizontal = Math.ceil(length / EPS_BLOCK_LENGTH);
-    const blocksVertical = Math.ceil(height / EPS_BLOCK_HEIGHT);
+    const blocksHorizontal = Math.ceil(l / EPS_BLOCK_LENGTH);
+    const blocksVertical = Math.ceil(h / EPS_BLOCK_HEIGHT);
     const totalBlocks = blocksHorizontal * blocksVertical;
 
-    // Calcula blocos inteiros e cortados
-    const lengthRemainder = length % EPS_BLOCK_LENGTH;
-    const heightRemainder = height % EPS_BLOCK_HEIGHT;
+    const lengthRemainder = l % EPS_BLOCK_LENGTH;
+    const heightRemainder = h % EPS_BLOCK_HEIGHT;
 
     const hasHorizontalCut = lengthRemainder > 0.01;
     const hasVerticalCut = heightRemainder > 0.01;
 
-    // Dimensões do SVG
     const svgWidth = 600;
     const svgHeight = 400;
     const padding = 40;
 
-    // Escala para caber no SVG
-    const maxLength = length > 0 ? length : 1;
-    const maxHeight = height > 0 ? height : 1;
+    const maxLength = l > 0 ? l : 1;
+    const maxHeight = h > 0 ? h : 1;
     const scaleX = (svgWidth - padding * 2) / maxLength;
     const scaleY = (svgHeight - padding * 2) / maxHeight;
 
-    // Gera posições dos blocos
     const blocks: BlockPosition[] = [];
     let blockNumber = 1;
 
@@ -61,7 +64,6 @@ export function EPSBlockVisualization({
         const x = padding + col * EPS_BLOCK_LENGTH * scaleX;
         const y = padding + row * EPS_BLOCK_HEIGHT * scaleY;
 
-        // Verifica se é bloco inteiro ou cortado
         const isLastCol = col === blocksHorizontal - 1;
         const isLastRow = row === blocksVertical - 1;
 
@@ -98,7 +100,7 @@ export function EPSBlockVisualization({
       blocksHorizontal,
       blocksVertical,
     };
-  }, [length, height]);
+  }, [currentDim.l, currentDim.h]);
 
   if (!visualization) {
     return (
@@ -115,17 +117,48 @@ export function EPSBlockVisualization({
       <div className="space-y-4">
         <div>
           <h3 className="text-lg font-bold text-[#2d2d2d] mb-2">
-            📐 Visualização 2D - Disposição de Blocos EPS
+            📐 Visualização 2D — Disposição de Blocos EPS (4 Faces do A-Frame)
           </h3>
           <p className="text-sm text-[#6b6b6b]">
-            Comprimento: {length.toFixed(2)}m × Altura: {height.toFixed(2)}m
+            O A-Frame é composto por <strong>2 lados inclinados</strong> (laterais) e <strong>2 paredes</strong> (frente e fundo). Selecione abaixo qual face deseja inspecionar em detalhe:
           </p>
+        </div>
+
+        {/* Seletor de Faces */}
+        <div className="flex gap-2 border-b border-[#e8e6e1] pb-3">
+          <button
+            onClick={() => setActiveFace('side')}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              activeFace === 'side'
+                ? 'bg-[#15803d] text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Lados Inclinados (2x)
+          </button>
+          <button
+            onClick={() => setActiveFace('front_rear')}
+            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              activeFace === 'front_rear'
+                ? 'bg-[#15803d] text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Frente e Fundo (2x)
+          </button>
+        </div>
+
+        <div className="text-xs text-[#6b6b6b] bg-[#f9f9f9] p-2 rounded">
+          {activeFace === 'side' ? (
+            <span>Exibindo 1 dos 2 lados inclinados (Comprimento: <strong>{length.toFixed(2)}m</strong> × Altura: <strong>{height.toFixed(2)}m</strong>). O cálculo total considera <strong>2 paredes laterais</strong>.</span>
+          ) : (
+            <span>Exibindo as paredes de Frente/Fundo (Base: <strong>{baseWidth.toFixed(2)}m</strong> × Altura: <strong>{height.toFixed(2)}m</strong>). O cálculo total considera <strong>2 paredes frontais/traseiras</strong> com cortes em ângulo.</span>
+          )}
         </div>
 
         {/* SVG Visualization */}
         <div className="flex justify-center bg-[#f9f9f9] p-4 rounded-lg overflow-x-auto">
           <svg width={svgWidth} height={svgHeight} className="border border-[#e8e6e1] bg-white">
-            {/* Grid background */}
             <defs>
               <pattern
                 id="grid"
@@ -156,7 +189,6 @@ export function EPSBlockVisualization({
                   strokeWidth="1.5"
                   opacity="0.8"
                 />
-                {/* Block number label */}
                 {block.width > 30 && block.height > 20 && (
                   <text
                     x={block.x + block.width / 2}
@@ -173,8 +205,6 @@ export function EPSBlockVisualization({
               </g>
             ))}
 
-            {/* Dimensions labels */}
-            {/* Horizontal dimension */}
             <text
               x={svgWidth / 2}
               y={svgHeight - 10}
@@ -183,10 +213,9 @@ export function EPSBlockVisualization({
               fontSize="12"
               fontWeight="bold"
             >
-              {length.toFixed(2)}m
+              Comprimento da face: {currentDim.l.toFixed(2)}m
             </text>
 
-            {/* Vertical dimension */}
             <text
               x={15}
               y={svgHeight / 2}
@@ -196,7 +225,7 @@ export function EPSBlockVisualization({
               fontWeight="bold"
               transform={`rotate(-90 15 ${svgHeight / 2})`}
             >
-              {height.toFixed(2)}m
+              Altura: {currentDim.h.toFixed(2)}m
             </text>
           </svg>
         </div>
@@ -204,17 +233,17 @@ export function EPSBlockVisualization({
         {/* Statistics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="bg-green-50 border border-green-200 rounded p-3">
-            <p className="text-xs text-green-600 mb-1">Blocos Inteiros</p>
+            <p className="text-xs text-green-600 mb-1">Blocos Inteiros (Esta Face)</p>
             <p className="text-2xl font-bold text-green-900">{wholeBlocks}</p>
           </div>
 
           <div className="bg-orange-50 border border-orange-200 rounded p-3">
-            <p className="text-xs text-orange-600 mb-1">Blocos Cortados</p>
+            <p className="text-xs text-orange-600 mb-1">Blocos Cortados (Esta Face)</p>
             <p className="text-2xl font-bold text-orange-900">{cutBlocks}</p>
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded p-3">
-            <p className="text-xs text-blue-600 mb-1">Total de Blocos</p>
+            <p className="text-xs text-blue-600 mb-1">Total de Blocos (Esta Face)</p>
             <p className="text-2xl font-bold text-blue-900">{totalBlocks}</p>
           </div>
 
@@ -236,25 +265,19 @@ export function EPSBlockVisualization({
             </div>
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 bg-orange-500 border border-[#2d2d2d]"></div>
-              <span className="text-[#6b6b6b]">Blocos Cortados</span>
+              <span className="text-[#6b6b6b]">Blocos Cortados (Ajuste/Ângulo)</span>
             </div>
           </div>
         </div>
 
         {/* Technical Info */}
         <div className="bg-blue-50 border border-blue-200 rounded p-4 text-sm">
-          <p className="text-blue-900 font-semibold mb-2">💡 Informações Técnicas:</p>
+          <p className="text-blue-900 font-semibold mb-2">💡 Súmula das 4 Faces do A-Frame (EPS 1.25m × 0.40m):</p>
           <ul className="text-blue-800 space-y-1 text-xs">
-            <li>• Cada bloco EPS padrão: 1.25m × 0.40m</li>
-            <li>• Cada 2 formas = 1m² de parede</li>
-            <li>• Total de formas necessárias: <strong>{totalBlocks * 2}</strong></li>
-            <li>• Blocos inteiros: <strong>{wholeBlocks}</strong></li>
-            <li>• Blocos que precisam corte: <strong>{cutBlocks}</strong></li>
-            {cutBlocks > 0 && (
-              <li className="text-orange-700 font-semibold">
-                ⚠️ Atenção: {cutBlocks} bloco(s) precisará(ão) de corte
-              </li>
-            )}
+            <li>• <strong>2 Lados Inclinados</strong> (laterais do telhado): Comprimento {length.toFixed(2)}m × Altura {height.toFixed(2)}m cada.</li>
+            <li>• <strong>2 Paredes Frontais/Traseiras</strong>: Base {baseWidth.toFixed(2)}m × Altura {height.toFixed(2)}m cada (com corte triangular).</li>
+            <li>• Cada 2 formas = 1m² de parede. Concreto: 78 L/m² de parede. Aço: ~5 kg/m² de parede.</li>
+            <li>• O simulador global soma todas as 4 faces para gerar os custos da obra cinza e o quantitativo exato de blocos.</li>
           </ul>
         </div>
       </div>
