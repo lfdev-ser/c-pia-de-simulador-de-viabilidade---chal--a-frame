@@ -61,6 +61,18 @@ export const DEFAULT_FINISHING_PRODUCTS: FinishingProductPrice[] = [
     priceNote: 'Valor informado já considera acréscimo de 6,50%. Referência: 1 m/m² por lado, 2 m/m² no total.',
   },
   {
+    id: 'tela-fibra-reforco',
+    name: 'Tela de Fibra para ICFlex',
+    unit: 'm²',
+    unitPrice: 4.50,
+    referenceQuantity: 0,
+    // 1 m² de tela por m² de parede (aplicação em ambas as faces ou tela estrutural)
+    unitsPerM2: 1,
+    side: 'support',
+    includeInObraCinza: true,
+    priceNote: 'Tela de reforço estrutural para aplicação com ICFlex interno e externo.',
+  },
+  {
     id: 'icflex-datec',
     name: 'ICFLEX Datec',
     unit: 'un',
