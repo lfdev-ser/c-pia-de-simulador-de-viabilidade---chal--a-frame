@@ -215,6 +215,12 @@
 - [x] Executar testes Vitest e build de produção.
 # Observação Comercial de Custos (Sem Frete e Impostos)
 
-- [ ] Incluir a nota "Preço de custo ao expert, sem frete e impostos inclusos" na seção de resumo financeiro do simulador (`AFrameSimulator.tsx`).
-- [ ] Incluir a mesma nota nos botões de exportação e relatórios PDF (`PDFExportButton.tsx` e `ExpandedPDFExportButton.tsx`).
+- [x] Incluir a nota "Preço de custo ao expert, sem frete e impostos inclusos" na seção de resumo financeiro do simulador (`AFrameSimulator.tsx`).
+- [x] Incluir a mesma nota nos botões de exportação e relatórios PDF (`PDFExportButton.tsx` e `ExpandedPDFExportButton.tsx`).
+- [x] Executar testes Vitest e build de produção.
+# Correção de Exibição de Patrocinadores na Coluna Lateral
+
+- [ ] Auditar como `SponsorsSidebar.tsx` consome os patrocinadores do backend.
+- [ ] Verificar se patrocinadores criados sem vincular explicitamente campanhas/criativos ao motor de anúncio avançado aparecem na listagem simples.
+- [ ] Garantir fallback para que todo patrocinador ativo cadastrado no painel seja exibido na coluna lateral direita.
 - [ ] Executar testes Vitest e build de produção.

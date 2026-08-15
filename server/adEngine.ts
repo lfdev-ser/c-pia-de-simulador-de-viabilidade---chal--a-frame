@@ -26,7 +26,35 @@ export async function selectBestAdForSlot(slotCode: string, userContext: UserCon
       sql`${adCampaigns.impressionsCount} < ${adCampaigns.impressionLimit}`
     ));
 
-  if (campaigns.length === 0) return null;
+  if (campaigns.length === 0) {
+    // Fallback inteligente: se não houver campanhas ativas no ad engine, buscar patrocinadores ativos diretamente cadastrados
+    const activeSponsors = await db.select()
+      .from(sponsors)
+      .where(eq(sponsors.isActive, 1))
+      .orderBy(sponsors.displayOrder);
+
+    if (activeSponsors.length > 0) {
+      // Selecionar de forma determinística/pseudorrandômica baseada no slotCode ou índice
+      const slotIndex = parseInt(slotCode.replace(/\D/g, ''), 10) || 1;
+      const sponsor = activeSponsors[(slotIndex - 1) % activeSponsors.length];
+      return {
+        campaignId: 999999,
+        creativeId: 999999,
+        slotCode,
+        title: sponsor.title,
+        description: sponsor.description,
+        imageUrl: sponsor.imageUrl,
+        destinationUrl: sponsor.website || sponsor.externalLink,
+        ctaText: "Visite o Site",
+        sponsorName: sponsor.name,
+        sponsorAddress: sponsor.address,
+        sponsorPhone: sponsor.phone,
+        matchType: "DIRECT_FALLBACK",
+      };
+    }
+
+    return null;
+  }
 
   const eligibleCampaigns = [];
 

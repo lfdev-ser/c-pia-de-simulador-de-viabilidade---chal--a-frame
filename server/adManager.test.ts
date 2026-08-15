@@ -14,7 +14,7 @@ describe('Auditoria Completa do Ad Manager & Motor de Seleção', () => {
     });
     // Se houver campanhas de teste cadastradas, o matchType deve refletir CITY ou fallback
     if (ad) {
-      expect(['CITY', 'REGIONAL_MATCH', 'STATE', 'NATIONAL']).toContain(ad.matchType);
+      expect(['CITY', 'REGIONAL_MATCH', 'STATE', 'NATIONAL', 'DIRECT_FALLBACK']).toContain(ad.matchType);
     } else {
       expect(ad).toBeNull();
     }
