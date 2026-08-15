@@ -163,3 +163,21 @@
 - [ ] Testar cenários de pagamentos duplicados, webhook duplicado, campanha expirada, esgotada, pausada e criativo rejeitado.
 - [ ] Testar segmentação incorreta, tentativa de ativação sem pagamento e fluxo de reembolso.
 - [ ] Apresentar relatório de evidências e falhas da homologação SANDBOX.
+# Fase 6 — Preparação para Produção Comercial
+
+- [x] Auditar secrets, credenciais e variáveis necessárias para transição para produção.
+- [x] Modelar separação rigorosa entre Sandbox e Production.
+- [x] Preparar arquitetura de webhook assinado (HMAC SHA-256) e validação estrita de idempotência e valores (`ad_orders.amount`).
+- [x] Implementar ciclos financeiros seguros (`PENDING`, `PAID`, `CANCELLED`, `REFUNDED`).
+- [x] Criar comprovantes comerciais e relatórios finais de campanha para patrocinadores.
+- [x] Estabelecer checklist de segurança pré-produção, testes controlados e manter bloqueio de gateway real até confirmação explícita.
+# Fase 7 — Checklist Final Pré-Produção (Auditoria)
+
+- [x] Auditar código-fonte, frontend e versionamento para garantir ausência de secrets de produção ou `.env` exposto.
+- [x] Validar separação absoluta entre SANDBOX e PRODUCTION.
+- [x] Auditar assinaturas de webhooks, idempotência e conferência de valores (`ad_orders.amount`).
+- [x] Auditar estados financeiros (`PENDING`, `PAID`, `CANCELLED`, `REFUNDED`) e revogação correta por refund.
+- [x] Auditar restrições de ativação, campanhas expiradas/esgotadas e controle de inventário.
+- [x] Auditar contagem de impressões faturáveis, CTR, SoV, frequency cap e geolocalização.
+- [x] Validar relatórios comerciais, comprovantes de pedido e logs de auditoria.
+- [x] Executar testes automatizados (Vitest) e build de produção sem ativar gateway real.
