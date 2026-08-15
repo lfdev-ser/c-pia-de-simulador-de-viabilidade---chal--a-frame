@@ -203,13 +203,13 @@
 - [x] Executar testes Vitest e build de produção para garantir estabilidade.
 # Investigação e Correção do Custo Fixo por m² da Obra Cinza
 
-- [ ] Buscar no código-fonte onde o valor 284,61 ou equivalente estático/hardcoded de obra cinza por m² aparece.
-- [ ] Garantir que o cálculo de `obraCinzaCostPerM2` em `AFrameSimulator.tsx` utilize dinamicamente todos os produtos de acabamento com `includeInObraCinza: true` multiplicados por seus respectivos `unitsPerM2` e preços unitários atuais.
-- [ ] Validar que o valor muda imediatamente quando qualquer preço (concreto, aço, EPS, ICFlex, ICFibra) for alterado pelo usuário.
-- [ ] Executar testes Vitest e build de produção.
+- [x] Buscar no código-fonte onde o valor 284,61 ou equivalente estático/hardcoded de obra cinza por m² aparece.
+- [x] Garantir que o cálculo de `obraCinzaCostPerM2` em `AFrameSimulator.tsx` utilize dinamicamente todos os produtos de acabamento com `includeInObraCinza: true` multiplicados por seus respectivos `unitsPerM2` e preços unitários atuais.
+- [x] Validar que o valor muda imediatamente quando qualquer preço (concreto, aço, EPS, ICFlex, ICFibra) for alterado pelo usuário.
+- [x] Executar testes Vitest e build de produção.
 # Inclusão da Tela de Fibra na Obra Cinza
 
-- [ ] Verificar em `materialPrices.ts` se a tela de fibra (reforço para ICFlex) está cadastrada em `DEFAULT_FINISHING_PRODUCTS` com `includeInObraCinza: true` e rendimento adequado por m².
-- [ ] Atualizar o cadastro de produtos de acabamento para garantir que a tela de fibra participe do cálculo de `obraCinzaCostPerM2`.
-- [ ] Validar que o custo por m² de parede passe a somar a tela de fibra junto ao EPS, concreto, aço e ICFlex.
-- [ ] Executar testes Vitest e build de produção.
+- [x] Verificar em `materialPrices.ts` se a tela de fibra (reforço para ICFlex) está cadastrada em `DEFAULT_FINISHING_PRODUCTS` com `includeInObraCinza: true` e rendimento adequado por m².
+- [x] Atualizar o cadastro de produtos de acabamento para garantir que a tela de fibra participe do cálculo de `obraCinzaCostPerM2`.
+- [x] Validar que o custo por m² de parede passe a somar a tela de fibra junto ao EPS, concreto, aço e ICFlex.
+- [x] Executar testes Vitest e build de produção.
