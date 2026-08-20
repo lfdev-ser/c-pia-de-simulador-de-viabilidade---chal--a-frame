@@ -238,6 +238,11 @@
 - [x] Executar testes Vitest e build de produção.
 # Links Clicáveis nas Imagens de Patrocinadores
 
-- [ ] Auditar `SponsorsSidebar.tsx` e `SponsorsCarousel.tsx` para envolver a imagem em um link `<a>` quando houver site/link cadastrado.
-- [ ] Garantir abertura em nova aba com `target="_blank"` e `rel="noopener noreferrer"`.
+- [x] Auditar `SponsorsSidebar.tsx` e `SponsorsCarousel.tsx` para envolver a imagem em um link `<a>` quando houver site/link cadastrado.
+- [x] Garantir abertura em nova aba com `target="_blank"` e `rel="noopener noreferrer"`.
+- [x] Executar testes Vitest e build de produção.
+# Aprimoramentos Visuais em Patrocinadores (Hover, Tooltip e Fallback)
+
+- [ ] Implementar manipulador `onError` nas imagens (`SponsorsSidebar.tsx` e `SponsorsCarousel.tsx`) para chavear para imagem de fallback padrão em caso de falha de carregamento.
+- [ ] Adicionar efeitos de transição refinados (`transition-all duration-300 hover:scale-105 hover:shadow-lg hover:ring-2 hover:ring-emerald-400/50`) e tooltips informativos.
 - [ ] Executar testes Vitest e build de produção.

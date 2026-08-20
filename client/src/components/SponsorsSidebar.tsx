@@ -98,39 +98,48 @@ function AdSlotCard({ slotCode, sessionId, priorityIndex }: { slotCode: string; 
     });
   };
 
+  const [imgError, setImgError] = React.useState(false);
   const rawImageUrl = typeof ad.imageUrl === 'string' && ad.imageUrl.trim().length > 0
     ? ad.imageUrl.trim()
     : null;
-  const imageUrl = rawImageUrl ? encodeURI(rawImageUrl) : null;
+  const imageUrl = !imgError && rawImageUrl ? encodeURI(rawImageUrl) : 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=640&q=80';
+
+  const tooltipText = ad.destinationUrl 
+    ? `Visitar site de ${ad.sponsorName} - ${ad.destinationUrl}` 
+    : `Patrocínio de ${ad.sponsorName}`;
 
   return (
-    <Card className="bg-white border-emerald-100 hover:border-emerald-300 hover:shadow-md transition-all duration-200 rounded-2xl overflow-hidden flex flex-col">
-      <div className="relative h-36 bg-white border-b border-slate-100 flex items-center justify-center p-3">
-        {imageUrl ? (
-          ad.destinationUrl ? (
-            <a 
-              href={ad.destinationUrl} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="w-full h-full flex items-center justify-center cursor-pointer group"
-              title={`Visitar site de ${ad.sponsorName}`}
-            >
-              <img
-                src={imageUrl}
-                alt={ad.title}
-                className="max-h-full max-w-full object-contain object-center group-hover:scale-105 transition-transform duration-200"
-              />
-            </a>
-          ) : (
+    <Card className="bg-white border-emerald-100 hover:border-emerald-300 hover:shadow-md transition-all duration-200 rounded-2xl overflow-hidden flex flex-col group/card">
+      <div className="relative h-36 bg-slate-50 border-b border-slate-100 flex items-center justify-center p-3 overflow-hidden">
+        {ad.destinationUrl ? (
+          <a 
+            href={ad.destinationUrl} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            onClick={handleClick}
+            className="w-full h-full flex items-center justify-center cursor-pointer group relative"
+            title={tooltipText}
+          >
             <img
               src={imageUrl}
               alt={ad.title}
-              className="max-h-full max-w-full object-contain object-center"
+              onError={() => setImgError(true)}
+              className="max-h-full max-w-full object-contain object-center group-hover:scale-110 group-hover:brightness-105 transition-all duration-300 shadow-sm rounded"
             />
-          )
+            <div className="absolute inset-0 bg-emerald-900/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+              <span className="bg-slate-900/90 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg backdrop-blur-sm">
+                Visitar Site ↗
+              </span>
+            </div>
+          </a>
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-slate-400">
-            Imagem não cadastrada
+          <div className="w-full h-full flex items-center justify-center relative group">
+            <img
+              src={imageUrl}
+              alt={ad.title}
+              onError={() => setImgError(true)}
+              className="max-h-full max-w-full object-contain object-center shadow-sm rounded"
+            />
           </div>
         )}
         <div className="absolute top-2 left-2 bg-slate-900/80 backdrop-blur-md text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
