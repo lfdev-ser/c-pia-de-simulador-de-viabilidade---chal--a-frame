@@ -89,6 +89,8 @@ function AdSlotCard({ slotCode, sessionId, priorityIndex }: { slotCode: string; 
     );
   }
 
+  const [imgError, setImgError] = React.useState(false);
+
   const handleClick = () => {
     recordClickMutation.mutate({
       campaignId: ad.campaignId,
@@ -97,8 +99,6 @@ function AdSlotCard({ slotCode, sessionId, priorityIndex }: { slotCode: string; 
       sessionId,
     });
   };
-
-  const [imgError, setImgError] = React.useState(false);
   const rawImageUrl = typeof ad.imageUrl === 'string' && ad.imageUrl.trim().length > 0
     ? ad.imageUrl.trim()
     : null;
