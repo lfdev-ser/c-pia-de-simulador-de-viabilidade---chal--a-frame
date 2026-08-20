@@ -71,6 +71,8 @@ function AdSlotCard({ slotCode, sessionId, priorityIndex }: { slotCode: string; 
     }
   }, [ad?.campaignId]);
 
+  const [imgError, setImgError] = React.useState(false);
+
   if (isLoading) {
     return (
       <Card className="bg-white border-slate-200 rounded-2xl p-6 flex items-center justify-center min-h-[220px]">
@@ -88,8 +90,6 @@ function AdSlotCard({ slotCode, sessionId, priorityIndex }: { slotCode: string; 
       </Card>
     );
   }
-
-  const [imgError, setImgError] = React.useState(false);
 
   const handleClick = () => {
     recordClickMutation.mutate({
