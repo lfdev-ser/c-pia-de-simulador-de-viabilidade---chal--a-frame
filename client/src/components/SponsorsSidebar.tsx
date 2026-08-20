@@ -107,11 +107,27 @@ function AdSlotCard({ slotCode, sessionId, priorityIndex }: { slotCode: string; 
     <Card className="bg-white border-emerald-100 hover:border-emerald-300 hover:shadow-md transition-all duration-200 rounded-2xl overflow-hidden flex flex-col">
       <div className="relative h-36 bg-white border-b border-slate-100 flex items-center justify-center p-3">
         {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={ad.title}
-            className="max-h-full max-w-full object-contain object-center"
-          />
+          ad.destinationUrl ? (
+            <a 
+              href={ad.destinationUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="w-full h-full flex items-center justify-center cursor-pointer group"
+              title={`Visitar site de ${ad.sponsorName}`}
+            >
+              <img
+                src={imageUrl}
+                alt={ad.title}
+                className="max-h-full max-w-full object-contain object-center group-hover:scale-105 transition-transform duration-200"
+              />
+            </a>
+          ) : (
+            <img
+              src={imageUrl}
+              alt={ad.title}
+              className="max-h-full max-w-full object-contain object-center"
+            />
+          )
         ) : (
           <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-slate-400">
             Imagem não cadastrada

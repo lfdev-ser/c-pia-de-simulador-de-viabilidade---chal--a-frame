@@ -232,7 +232,12 @@
 - [x] Executar testes Vitest e build de produção.
 # Correção Específica da Imagem e Patrocinador Oficina de AI
 
-- [ ] Auditar no banco de dados e logs o estado do patrocinador "Oficina de AI".
-- [ ] Verificar se a URL da imagem contendo parênteses ou espaços no nome do arquivo (`photo_2026-05-30_16-51-00 (2)_b4576934.jpg`) está causando falha de carregamento no navegador por codificação de URI.
-- [ ] Aplicar codificação de URI segura (`encodeURI`) ou normalização na renderização das imagens em `SponsorsSidebar.tsx`, `SponsorsCarousel.tsx` e `IcfWorksGallery.tsx`.
+- [x] Auditar no banco de dados e logs o estado do patrocinador "Oficina de AI".
+- [x] Verificar se a URL da imagem contendo parênteses ou espaços no nome do arquivo (`photo_2026-05-30_16-51-00 (2)_b4576934.jpg`) está causando falha de carregamento no navegador por codificação de URI.
+- [x] Aplicar codificação de URI segura (`encodeURI`) ou normalização na renderização das imagens em `SponsorsSidebar.tsx`, `SponsorsCarousel.tsx` e `IcfWorksGallery.tsx`.
+- [x] Executar testes Vitest e build de produção.
+# Links Clicáveis nas Imagens de Patrocinadores
+
+- [ ] Auditar `SponsorsSidebar.tsx` e `SponsorsCarousel.tsx` para envolver a imagem em um link `<a>` quando houver site/link cadastrado.
+- [ ] Garantir abertura em nova aba com `target="_blank"` e `rel="noopener noreferrer"`.
 - [ ] Executar testes Vitest e build de produção.
